@@ -1,0 +1,41 @@
+{
+	"schemaVersion": 1,
+	"id": "idogmod",
+	"version": "${version}",
+	"name": "iDog Mod",
+	"description": "Adds the iDog, a musical companion to accompany you! (For bugs/issues/suggestions do not hesitate to comment or contact me. Have fun!)",
+	"authors": [
+		"ethem00"
+	],
+	"contact": {
+		"homepage": "https://ethem00.blogspot.com/",
+		"sources": "https://github.com/ethemficici/iDogMod",
+        "twitter": "https://twitter.com/ethemLOL"
+	},
+	"license": "MIT",
+	"icon": "assets/idogmod/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.ethem00.idogmod.iDogMod"
+		],
+        "client": [
+            "com.ethem00.idogmod.iDogModClient"
+        ],
+		"fabric-datagen": [
+			"com.ethem00.idogmod.iDogModDataGenerator"
+		]
+	},
+	"mixins": [
+		"idogmod.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.17.3",
+		"minecraft": "~1.20.1",
+		"java": ">=17",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
