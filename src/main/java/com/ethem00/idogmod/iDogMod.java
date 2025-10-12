@@ -1,9 +1,14 @@
 package com.ethem00.idogmod;
 
+import com.ethem00.idogmod.entity.ModEntities;
+import com.ethem00.idogmod.entity.iDogEntity;
 import net.fabricmc.api.ModInitializer;
 
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.ethem00.idogmod.entity.ModEntities.registerModEntities;
 
 public class iDogMod implements ModInitializer {
 	public static final String MOD_ID = "idogmod";
@@ -20,5 +25,9 @@ public class iDogMod implements ModInitializer {
 		// Proceed with mild caution.
 
 		LOGGER.info("iDog initializing!");
+
+        registerModEntities();
+
+        FabricDefaultAttributeRegistry.register(ModEntities.IDOG, iDogEntity.createiDogAttributes());
 	}
 }
