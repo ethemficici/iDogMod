@@ -42,6 +42,7 @@ import net.minecraft.world.WorldEvents;
 import net.minecraft.world.event.GameEvent;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -64,8 +65,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
 
     //Jukebox
     private static final int SECOND_PER_TICK = 20;
-    private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(this.size(), ItemStack.EMPTY);
-    private int ticksThisSecond;
+    private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(1, ItemStack.EMPTY);
     private long tickCount;
     private long recordStartTick;
     private boolean isPlaying;
@@ -108,9 +108,9 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     public static DefaultAttributeContainer.Builder createiDogAttributes(){
         return MobEntity.createMobAttributes()
                 .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.35F)
-                .add(EntityAttributes.GENERIC_MAX_HEALTH, 25.0)
+                .add(EntityAttributes.GENERIC_MAX_HEALTH, 12.0)
                 .add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 3.0)
-                .add(EntityAttributes.GENERIC_ARMOR, 5.0)
+                .add(EntityAttributes.GENERIC_ARMOR, 1.0)
                 .add(EntityAttributes.GENERIC_ARMOR_TOUGHNESS, 1.0)
                 .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE, 0.5);
     }
@@ -123,7 +123,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     }
 
     public String getCurrentDisc() {
-        return this.dataTracker.get(CURRENT_DISC);
+        return this.dataTracker.get(CURRENT_DISC); //dataTracker.get results in the value, not the tracked data ID.
     }
 
     public void setCurrentDisc(String discName) {
@@ -175,13 +175,16 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     public void setTamed(boolean tamed) {
         super.setTamed(tamed);
         if (tamed) {
-            this.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(20.0);
-            this.setHealth(20.0F);
+            this.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(30.0);
+            this.getAttributeInstance(EntityAttributes.GENERIC_ATTACK_DAMAGE).setBaseValue(5.0);
+            this.getAttributeInstance(EntityAttributes.GENERIC_ARMOR).setBaseValue(5.0);
+            this.getAttributeInstance(EntityAttributes.GENERIC_ARMOR_TOUGHNESS).setBaseValue(2.0);
+            this.setHealth(30.0F);
         } else {
-            this.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(8.0);
+            this.getAttributeInstance(EntityAttributes.GENERIC_MAX_HEALTH).setBaseValue(12.0);
         }
 
-        this.getAttributeInstance(EntityAttributes.GENERIC_ATTACK_DAMAGE).setBaseValue(4.0);
+        this.getAttributeInstance(EntityAttributes.GENERIC_ATTACK_DAMAGE).setBaseValue(5.0);
     }
 
     public float getTailAngle() {
@@ -190,11 +193,6 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         } else {
             return this.isTamed() ? (0.55F - (this.getMaxHealth() - this.getHealth()) * 0.02F) * (float) Math.PI : (float) (Math.PI / 5);
         }
-    }
-
-    @Override
-    public EntityView method_48926() {
-        return null;
     }
 
     @Override
@@ -269,26 +267,20 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
 
     @VisibleForTesting
     public void startPlaying() {
-        this.recordStartTick = this.tickCount;
         this.isPlaying = true;
-        this.getWorld().syncWorldEvent(null, WorldEvents.JUKEBOX_STARTS_PLAYING, BlockPos.ofFloored(this.getPos()), Item.getRawId(this.getStack().getItem()));
+        playSound(SoundEvents.ENTITY_ITEM_FRAME_ROTATE_ITEM, 2.0F, 0.25F);
+        playSound(SoundEvents.ITEM_BOTTLE_FILL_DRAGONBREATH, 2.0F, 0.5F);
         this.markDirty();
     }
 
     private void stopPlaying() {
         this.isPlaying = false;
-        this.getWorld().emitGameEvent(GameEvent.JUKEBOX_STOP_PLAY, this.getPos(), null);
-        this.getWorld().syncWorldEvent(WorldEvents.JUKEBOX_STOPS_PLAYING, BlockPos.ofFloored(this.getPos()), 0);
+        playSound(SoundEvents.ENTITY_ITEM_FRAME_REMOVE_ITEM, 2.0F, 2.0F);
         this.markDirty();
     }
 
-
     private boolean isSongFinished(MusicDiscItem musicDisc) {
         return this.tickCount >= this.recordStartTick + musicDisc.getSongLengthInTicks() + 20L;
-    }
-
-    private boolean hasSecondPassed() {
-        return this.ticksThisSecond >= 20;
     }
 
     @Override
@@ -305,7 +297,8 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     public void setStack(int slot, ItemStack stack) {
         if (stack.isIn(ItemTags.MUSIC_DISCS) && this.getWorld() != null) {
             this.inventory.set(slot, stack);
-            setCurrentDisc(stack.getName().toString());
+            setCurrentDisc(stack.getItem().toString());
+            System.out.println("iDog is now playing: " + getCurrentDisc());
             this.startPlaying();
         }
     }
@@ -315,6 +308,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         ItemStack itemStack = (ItemStack) Objects.requireNonNullElse(this.inventory.get(slot), ItemStack.EMPTY);
         this.inventory.set(slot, ItemStack.EMPTY);
         if (!itemStack.isEmpty()) {
+            this.setCurrentDisc("none");
             this.stopPlaying();
         }
 
@@ -342,51 +336,80 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         // If crouched, stop playing current disc and remove current disc.
 
         ItemStack itemStack = player.getStackInHand(hand);
-        if (!itemStack.isOf(Items.IRON_NUGGET) || !itemStack.isOf(Items.IRON_INGOT) || !itemStack.isOf(Items.COPPER_INGOT) || !itemStack.isIn(ItemTags.MUSIC_DISCS)) {
 
-            if(isPlayingRecord() && player.isSneaking())
-            {
-                removeStack();
-            } else {
-                setSitting(true);
-            }
+            if (!this.isOwner(player) || !this.isTamed()) { // if player is not owner, it is not tamed,
+                if (itemStack.isOf(Items.BONE) && !this.hasAngerTime()) {
 
-            return ActionResult.PASS;
-        } else {
+                    if (this.random.nextInt(3) == 0) { // 25% chance to tame
+                        this.setOwner(player);
+                        this.navigation.stop();
+                        this.setTarget(null);
+                        this.getWorld().sendEntityStatus(this, (byte) 7); // heart particles
+                        return ActionResult.success(this.getWorld().isClient);
+                    } else {
+                        this.getWorld().sendEntityStatus(this, (byte) 6); // smoke particles
+                    }
 
-            if(!itemStack.isIn(ItemTags.MUSIC_DISCS))
-            {
-                float f = this.getHealth();
-                if (itemStack.isOf(Items.IRON_NUGGET) || itemStack.isOf(Items.COPPER_INGOT)) {
-                    this.heal(2.5F);
-                }
-                if (itemStack.isOf(Items.IRON_INGOT)) {
-                    this.heal(25.0F);
-                }
-                if (this.getHealth() == f) {
-                    return ActionResult.PASS;
-                } else {
-                    float g = 1.0F + (this.random.nextFloat() - this.random.nextFloat()) * 0.2F;
-                    this.playSound(SoundEvents.ENTITY_PLAYER_BURP, 1.0F, g);
-                    this.playSound(SoundEvents.ENTITY_IRON_GOLEM_REPAIR, 1.0F, g);
                     if (!player.getAbilities().creativeMode) {
                         itemStack.decrement(1);
                     }
 
-                    return ActionResult.success(this.getWorld().isClient);
+                    return ActionResult.CONSUME;
                 }
-            } else {
+            }
 
-                if(isPlayingRecord())
-                {
+            if (this.isOwner(player) && this.isTamed()) {
+
+                if (!itemStack.isOf(Items.IRON_NUGGET) && !itemStack.isOf(Items.IRON_INGOT) && !itemStack.isOf(Items.COPPER_INGOT) && !itemStack.isIn(ItemTags.MUSIC_DISCS)) {
+
+                    if (isPlayingRecord() && player.isSneaking()) //If the iDog is playing, and player is sneaking.
+                    {
+                        removeStack();
+                    } else {
+                        if(isSitting()) {
+                            setSitting(true);
+                        } else { setSitting(false); }
+                    }
+
+                    return ActionResult.PASS;
+                }
+
+                if (!itemStack.isIn(ItemTags.MUSIC_DISCS)) {
+                    float f = this.getHealth();
+                    if (itemStack.isOf(Items.IRON_NUGGET) || itemStack.isOf(Items.COPPER_INGOT)) {
+                        this.heal(2.5F);
+                    }
+                    if (itemStack.isOf(Items.IRON_INGOT)) {
+                        this.heal(25.0F);
+                    }
+                    if (this.getHealth() == f) {
+                        return ActionResult.PASS;
+                    } else {
+                        float g = 1.0F + (this.random.nextFloat() - this.random.nextFloat()) * 0.2F;
+                        this.playSound(SoundEvents.ENTITY_PLAYER_BURP, 1.0F, g);
+                        this.playSound(SoundEvents.ENTITY_IRON_GOLEM_REPAIR, 1.0F, g);
+                        if (!player.getAbilities().creativeMode) {
+                            itemStack.decrement(1);
+                        }
+
+                        return ActionResult.success(this.getWorld().isClient);
+                    }
+                }
+
+                if (isPlayingRecord() && itemStack.isIn(ItemTags.MUSIC_DISCS)) {
                     removeStack();
                 } else {
-                    setStack(1, itemStack);
+                    setStack(0, itemStack);
                 }
 
                 return ActionResult.success(this.getWorld().isClient);
             }
-        }
+            return ActionResult.PASS;
+    }
+
+    @Override
+    public EntityView method_48926() {
+        return this.getWorld();
     }
 
     class iDogEscapeDangerGoal extends EscapeDangerGoal {

@@ -74,7 +74,12 @@ public class iDogEntityModel<T extends iDogEntity> extends SinglePartEntityModel
 	public void setAngles(iDogEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.getPart().traverse().forEach(ModelPart::resetTransform);
         setHeadAngles(netHeadYaw, headPitch);
-        this.animateMovement(iDogAnimations.WALKING_EARS_TAIL, limbSwing *2, limbSwingAmount *2, 2.0F, 2.5F);
+
+        if(entity.isSitting()) {
+            this.animateMovement(iDogAnimations.SITTING, limbSwing, limbSwingAmount, 2.0F, 2.5F);
+        } else {
+            this.animateMovement(iDogAnimations.WALKING_EARS_TAIL, limbSwing *2, limbSwingAmount *2, 2.0F, 2.5F);
+        }
     }
 
     private void setHeadAngles(float headYaw, float headPitch) {

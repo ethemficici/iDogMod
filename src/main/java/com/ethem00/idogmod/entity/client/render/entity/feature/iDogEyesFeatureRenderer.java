@@ -5,9 +5,10 @@ import com.ethem00.idogmod.entity.iDogEntity;
 import com.ethem00.idogmod.iDogMod;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.*;
 import net.minecraft.client.render.entity.feature.EyesFeatureRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRendererContext;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 
 @Environment(EnvType.CLIENT)
@@ -35,34 +36,59 @@ public class iDogEyesFeatureRenderer<T extends iDogEntity, M extends iDogEntityM
         super(featureRendererContext);
     }
 
-    public String retrieveDisc() {
-        return iDog.getCurrentDisc();
-    }
-
-    //TODO: Retrieve disk type from iDog entity and sort through textures.
-    // I don't know how to get information from the rendered entity instance yet.
-    @Override
-    public RenderLayer getEyesTexture() {
-        String disc = retrieveDisc();
+    private RenderLayer getEyesTexture(String disc) {
 
         return switch (disc) {
-            case "5" -> EYES_5;
-            case "11" -> EYES_11;
-            case "13" -> EYES_13;
-            case "blocks" -> EYES_BLOCKS;
-            case "cat" -> EYES_CAT;
-            case "chirp" -> EYES_CHIRP;
-            case "far" -> EYES_FAR;
-            case "mall" -> EYES_MALL;
-            case "mellohi" -> EYES_MELLOHI;
-            case "otherside" -> EYES_OTHERSIDE;
-            case "pigstep" -> EYES_PIGSTEP;
-            case "relic" -> EYES_RELIC;
-            case "stal" -> EYES_STAL;
-            case "strad" -> EYES_STRAD;
-            case "wait" -> EYES_WAIT;
-            case "ward" -> EYES_WARD;
+            case "none" -> DEFAULT_EYES;
+            case "music_disc_5" -> EYES_5;
+            case "music_disc_11" -> EYES_11;
+            case "music_disc_13" -> EYES_13;
+            case "music_disc_blocks" -> EYES_BLOCKS;
+            case "music_disc_cat" -> EYES_CAT;
+            case "music_disc_chirp" -> EYES_CHIRP;
+            case "music_disc_far" -> EYES_FAR;
+            case "music_disc_mall" -> EYES_MALL;
+            case "music_disc_mellohi" -> EYES_MELLOHI;
+            case "music_disc_otherside" -> EYES_OTHERSIDE;
+            case "music_disc_pigstep" -> EYES_PIGSTEP;
+            case "music_disc_relic" -> EYES_RELIC;
+            case "music_disc_stal" -> EYES_STAL;
+            case "music_disc_strad" -> EYES_STRAD;
+            case "music_disc_wait" -> EYES_WAIT;
+            case "music_disc_ward" -> EYES_WARD;
             default -> DEFAULT_EYES;
         };
+    }
+
+    @Override
+    public RenderLayer getEyesTexture() {
+        return DEFAULT_EYES;
+    }
+
+    @Override
+    public void render(
+            MatrixStack matrices,
+            VertexConsumerProvider vertexConsumers,
+            int light,
+            T iDogEntity,
+            float limbAngle,
+            float limbDistance,
+            float tickDelta,
+            float animationProgress,
+            float headYaw,
+            float headPitch
+    ) {
+
+        String disc = iDogEntity.getCurrentDisc();
+
+        VertexConsumer vertexConsumer = vertexConsumers.getBuffer(this.getEyesTexture(disc));
+
+        //TODO: Interpolate light with tick count to achieve pulsing effect
+        // Maybe... int min = light/2; int max = light; finalDelta = (BPM * tickDelta)/10;
+        // lerp(min, max, (finalDelta)
+        // Every 10 seconds it will go from min to max brightness. Maybe tie the alpha channel into it and vary the RGB values based on the current disc.
+        // EG mellohi is purple so it would lessen the G values, or alternate red and blue so that if one is 0 the other is 1. Or something similar.
+        // Varying the lerp delta to match the BPM of the current disc would also look interesting.
+        this.getContextModel().render(matrices, vertexConsumer, 15728640, OverlayTexture.DEFAULT_UV, 1.0F, 1.0F, 1.0F, 1.0F);
     }
 }

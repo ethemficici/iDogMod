@@ -12,6 +12,8 @@ import net.minecraft.util.Identifier;
 
 public class iDogRenderer extends MobEntityRenderer<iDogEntity, iDogEntityModel<iDogEntity>> {
     private static final Identifier BODY_TEXTURE = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/idog.png");
+    private static final Identifier BODY_TEXTURE_DAY = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/idog_day.png");
+
 
     public iDogRenderer(EntityRendererFactory.Context context) {
         super(context, new iDogEntityModel<>(context.getPart(ModModelLayers.IDOG)), 0.5f);
@@ -20,7 +22,7 @@ public class iDogRenderer extends MobEntityRenderer<iDogEntity, iDogEntityModel<
 
     @Override
     public Identifier getTexture(iDogEntity entity) {
-        return BODY_TEXTURE;
+        return BODY_TEXTURE_DAY;
     }
 
     @Override
@@ -30,10 +32,10 @@ public class iDogRenderer extends MobEntityRenderer<iDogEntity, iDogEntityModel<
     }
 
     @Override
-    public void render(iDogEntity mobEntity, float f, float g, MatrixStack matrixStack,
+    public void render(iDogEntity idogEntity, float f, float g, MatrixStack matrixStack,
                        VertexConsumerProvider vertexConsumerProvider, int i){
 
-        if(mobEntity.isBaby()) {
+        if(idogEntity.isBaby()) {
             matrixStack.scale(0.5f, 0.5f, 0.5f);
         } else {
             matrixStack.scale(1f, 1f, 1f);
@@ -47,6 +49,6 @@ public class iDogRenderer extends MobEntityRenderer<iDogEntity, iDogEntityModel<
          */
 
         // Now actually render the model!
-        super.render(mobEntity, f, g, matrixStack, vertexConsumerProvider, i);
+        super.render(idogEntity, f, g, matrixStack, vertexConsumerProvider, i);
     }
 }
