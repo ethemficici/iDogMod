@@ -13,7 +13,12 @@ import net.minecraft.util.Identifier;
 public class iDogRenderer extends MobEntityRenderer<iDogEntity, iDogEntityModel<iDogEntity>> {
     private static final Identifier BODY_TEXTURE = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/idog.png");
     private static final Identifier BODY_TEXTURE_DAY = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/idog_day.png");
+    private static final Identifier BODY_TEXTURE_RED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/idog_red.png");
+    private static final Identifier BODY_TEXTURE_GREEN = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/idog_green.png");
+    private static final Identifier BODY_TEXTURE_BLUE = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/idog_blue.png");
 
+
+    //Right click with target block to make a Target iDog?
 
     public iDogRenderer(EntityRendererFactory.Context context) {
         super(context, new iDogEntityModel<>(context.getPart(ModModelLayers.IDOG)), 0.5f);
@@ -22,7 +27,7 @@ public class iDogRenderer extends MobEntityRenderer<iDogEntity, iDogEntityModel<
 
     @Override
     public Identifier getTexture(iDogEntity entity) {
-        return BODY_TEXTURE_DAY;
+        return BODY_TEXTURE;
     }
 
     @Override

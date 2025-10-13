@@ -1,7 +1,10 @@
 package com.ethem00.idogmod.entity;
 
 import com.ethem00.idogmod.entity.ai.goal.iDogBegGoal;
+import com.ethem00.idogmod.iDogMod;
 import com.google.common.annotations.VisibleForTesting;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.*;
@@ -18,12 +21,13 @@ import net.minecraft.entity.passive.*;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
 import net.minecraft.inventory.SingleStackInventory;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.MusicDiscItem;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvent;
@@ -38,8 +42,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.intprovider.UniformIntProvider;
 import net.minecraft.world.EntityView;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldEvents;
-import net.minecraft.world.event.GameEvent;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -51,6 +53,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     private static final TrackedData<Boolean> BEGGING = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     private static final TrackedData<String> CURRENT_DISC = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.STRING);
     private static final UniformIntProvider ANGER_TIME_RANGE = TimeHelper.betweenSeconds(20, 120);
+    private SoundEvent currentSong;
     private int angerTime;
     @Nullable
     private UUID angryAt;
@@ -69,6 +72,9 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     private long tickCount;
     private long recordStartTick;
     private boolean isPlaying;
+    private boolean loopThisSong;
+    private boolean alertMe;
+    private float songVolume;
 
     public iDogEntity(EntityType<? extends TameableEntity> entityType, World world) {
         super(entityType, world);
@@ -115,6 +121,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
                 .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE, 0.5);
     }
 
+    //TODO: Fix issue where loading world doesn't display the correct eye type. Even if iDog has a disc in it's inventory.
     @Override
     protected void initDataTracker() {
         super.initDataTracker();
@@ -239,6 +246,9 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         }
 
         this.isPlaying = nbt.getBoolean("IsPlaying");
+        this.loopThisSong = nbt.getBoolean("LoopThisSong");
+        this.alertMe = nbt.getBoolean("AlertMe");
+        this.songVolume = nbt.getFloat("SongVolume");
         this.recordStartTick = nbt.getLong("RecordStartTick");
         this.tickCount = nbt.getLong("TickCount");
     }
@@ -250,10 +260,31 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
             nbt.put("RecordItem", this.getStack().writeNbt(new NbtCompound()));
         }
 
+        //TODO: NBT based volume control, Music Looping, and Alerts for danger and treasure minecarts
+        // On alert, volume for sound instance is lerped to 0 until the alert finishes, and then it is lerped back to its original volume.
         nbt.putBoolean("IsPlaying", this.isPlaying);
+        nbt.putBoolean("LoopThisSong", this.loopThisSong);
+        nbt.putBoolean("AlertMe", this.alertMe);
+        nbt.putFloat("SongVolume", this.songVolume);
         nbt.putLong("RecordStartTick", this.recordStartTick);
         nbt.putLong("TickCount", this.tickCount);
         return nbt;
+    }
+
+    public void setLoopBool(boolean passedBool) {
+        this.loopThisSong = passedBool;
+    }
+
+    public boolean getLoopBool() {
+        return this.loopThisSong;
+    }
+
+    public void setSongVolume(int passedVolume) {
+        this.songVolume = passedVolume/100F;
+    }
+
+    public float getSongVolume() {
+        return this.songVolume;
     }
 
     public boolean isPlayingRecord() {
@@ -266,10 +297,27 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     }
 
     @VisibleForTesting
-    public void startPlaying() {
+    public void startPlaying(MusicDiscItem musicDisc) {
         this.isPlaying = true;
         playSound(SoundEvents.ENTITY_ITEM_FRAME_ROTATE_ITEM, 2.0F, 0.25F);
         playSound(SoundEvents.ITEM_BOTTLE_FILL_DRAGONBREATH, 2.0F, 0.5F);
+
+        setSongVolume(100);
+        setLoopBool(true);
+
+        if(!this.getWorld().isClient)
+        {
+
+            PacketByteBuf buf = PacketByteBufs.create();
+            buf.writeInt(this.getId());
+            buf.writeIdentifier(Registries.ITEM.getId(musicDisc));
+            ServerWorld serverWorld = (ServerWorld) this.getWorld();
+            serverWorld.getPlayers().forEach(player -> {
+                ServerPlayNetworking.send(player, iDogMod.PLAY_IDOG_MUSIC, buf);
+                System.out.println("Sound packet sent to Player: " + player + " from entity: " + this.getId() + " with disc ID of: " + Registries.ITEM.getId(musicDisc));
+            });
+        }
+        currentSong = musicDisc.getSound();
         this.markDirty();
     }
 
@@ -298,13 +346,14 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         if (stack.isIn(ItemTags.MUSIC_DISCS) && this.getWorld() != null) {
             this.inventory.set(slot, stack);
             setCurrentDisc(stack.getItem().toString());
-            System.out.println("iDog is now playing: " + getCurrentDisc());
-            this.startPlaying();
+            //System.out.println("iDog is now playing: " + getCurrentDisc());
+            this.startPlaying((MusicDiscItem) stack.getItem());
         }
     }
 
     @Override
     public ItemStack removeStack(int slot, int amount) {
+        dropRecord();
         ItemStack itemStack = (ItemStack) Objects.requireNonNullElse(this.inventory.get(slot), ItemStack.EMPTY);
         this.inventory.set(slot, ItemStack.EMPTY);
         if (!itemStack.isEmpty()) {
@@ -313,6 +362,15 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         }
 
         return itemStack;
+    }
+
+    public void dropRecord() {
+        ItemStack itemStack = getStack();
+        if (this.hasCustomName()) {
+            itemStack.setCustomName(this.getCustomName());
+        }
+
+        this.dropStack(itemStack);
     }
 
     @Override
@@ -421,6 +479,11 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     @Override
     public @Nullable PassiveEntity createChild(ServerWorld world, PassiveEntity entity) {
         return null;
+    }
+
+    @Override
+    protected Entity.MoveEffect getMoveEffect() {
+        return MoveEffect.SOUNDS;
     }
 
     @Override
