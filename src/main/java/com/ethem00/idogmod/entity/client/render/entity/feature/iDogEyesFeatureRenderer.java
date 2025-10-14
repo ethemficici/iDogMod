@@ -9,7 +9,17 @@ import net.minecraft.client.render.*;
 import net.minecraft.client.render.entity.feature.EyesFeatureRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.decoration.DisplayEntity;
 import net.minecraft.util.Identifier;
+
+import static org.apache.commons.lang3.RandomUtils.nextInt;
+
+/*
+https://easings.net/
+
+Easing functions provided by Andrey Sitnik and Ivan Solovev
+ */
+
 
 @Environment(EnvType.CLIENT)
 public class iDogEyesFeatureRenderer<T extends iDogEntity, M extends iDogEntityModel<T>> extends EyesFeatureRenderer<T, M> {
@@ -81,5 +91,38 @@ public class iDogEyesFeatureRenderer<T extends iDogEntity, M extends iDogEntityM
         // EG mellohi is purple so it would lessen the G values, or alternate red and blue so that if one is 0 the other is 1. Or something similar.
         // Varying the lerp delta to match the BPM of the current disc would also look interesting.
         this.getContextModel().render(matrices, vertexConsumer, 15728640, OverlayTexture.DEFAULT_UV, 1.0F, 1.0F, 1.0F, 1.0F);
+    }
+
+    public float pickLerpEffect(Boolean isRandomEnabled) {
+
+        if(isRandomEnabled) {
+            return switch (nextInt(0, 8)) {
+                case 0 -> stobeInterpolation();
+                case 1 -> flashInterpolation();
+                case 2 -> slowPulseInterpolation();
+                case 3 -> 1F;
+                case 4 -> 1F;
+                case 5 -> 1F;
+                case 6 -> 1F;
+                case 7 -> 1F;
+                case 8 -> 1F;
+                default -> 1F;
+            };
+        } else {
+            return 1F;
+        }
+    }
+
+    // Random interpolation functions
+    public float stobeInterpolation() {
+        return 1F;
+    }
+
+    public float flashInterpolation() {
+        return 1F;
+    }
+
+    public float slowPulseInterpolation() {
+        return 1F;
     }
 }

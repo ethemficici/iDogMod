@@ -14,7 +14,8 @@ import com.ethem00.idogmod.entity.iDogEntity;
 import net.minecraft.util.math.MathHelper;
 
 public class iDogEntityModel<T extends iDogEntity> extends SinglePartEntityModel<T> {
-	private final ModelPart iDog;
+	private final ModelPart root;
+    private final ModelPart iDog;
     private final ModelPart head;
     private final ModelPart rightHindLeg;
     private final ModelPart leftHindLeg;
@@ -22,6 +23,7 @@ public class iDogEntityModel<T extends iDogEntity> extends SinglePartEntityModel
     private final ModelPart leftFrontLeg;
 
 	public iDogEntityModel(ModelPart root) {
+        this.root = root;
 		this.iDog = root.getChild("iDog");
 		this.head = iDog.getChild("head");
         this.leftFrontLeg = iDog.getChild("left_front_leg");
@@ -80,7 +82,7 @@ public class iDogEntityModel<T extends iDogEntity> extends SinglePartEntityModel
         }
 
         if(entity.isBegging()) {
-            this.animateMovement(iDogAnimations.BEGGING, 1, 1, 2.0F, 2.5F);
+            this.animateMovement(iDogAnimations.BEGGING, 60, 60, 2.0F, 2.5F);
         }
 
         if(!entity.isInSittingPose()) {
