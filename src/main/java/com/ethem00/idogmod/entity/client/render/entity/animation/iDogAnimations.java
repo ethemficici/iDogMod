@@ -35,6 +35,12 @@ public class iDogAnimations {
     public static final Animation SITTING = Animation.Builder.create(1.0F)
             .looping()
             .addBoneAnimation(
+                    "iDog",
+                    new Transformation(
+                            Transformation.Targets.ROTATE,
+                            new Keyframe(0.0F, AnimationHelper.createRotationalVector(-15.0F, 0.0F, 0.0F), Transformation.Interpolations.CUBIC))
+            )
+            .addBoneAnimation(
                     "left_hind_leg",
                     new Transformation(
                             Transformation.Targets.ROTATE,
@@ -57,12 +63,6 @@ public class iDogAnimations {
                     new Transformation(
                             Transformation.Targets.ROTATE,
                             new Keyframe(0.0F, AnimationHelper.createRotationalVector(2.5F, -0.5F, 5.0F), Transformation.Interpolations.CUBIC))
-            )
-            .addBoneAnimation(
-                    "iDog",
-                    new Transformation(
-                            Transformation.Targets.ROTATE,
-                            new Keyframe(0.0F, AnimationHelper.createRotationalVector(-15.0F, 0.0F, 0.0F), Transformation.Interpolations.CUBIC))
             )
             .build();
 
