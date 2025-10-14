@@ -66,18 +66,9 @@ public class iDogEyesFeatureRenderer<T extends iDogEntity, M extends iDogEntityM
     }
 
     @Override
-    public void render(
-            MatrixStack matrices,
-            VertexConsumerProvider vertexConsumers,
-            int light,
-            T iDogEntity,
-            float limbAngle,
-            float limbDistance,
-            float tickDelta,
-            float animationProgress,
-            float headYaw,
-            float headPitch
-    ) {
+    public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light,
+            T iDogEntity, float limbAngle, float limbDistance, float tickDelta,
+            float animationProgress, float headYaw, float headPitch) {
 
         String disc = iDogEntity.getCurrentDisc();
 

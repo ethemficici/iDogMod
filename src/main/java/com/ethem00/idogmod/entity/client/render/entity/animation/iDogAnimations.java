@@ -6,6 +6,32 @@ import net.minecraft.client.render.entity.animation.Keyframe;
 import net.minecraft.client.render.entity.animation.Transformation;
 
 public class iDogAnimations {
+    public static final Animation BEGGING = Animation.Builder.create(1.0F)
+            .addBoneAnimation(
+                    "head",
+                    new Transformation(
+                            Transformation.Targets.ROTATE,
+                            new Keyframe(0.0F, AnimationHelper.createRotationalVector(0.0F, 0.0F, 0.0F), Transformation.Interpolations.CUBIC),
+                            new Keyframe(0.5F, AnimationHelper.createRotationalVector(0.0F, 0.0F, -25.0F), Transformation.Interpolations.CUBIC)
+                    )
+
+            )
+            .addBoneAnimation(
+                    "left_ear",
+                    new Transformation(
+                            Transformation.Targets.ROTATE,
+                            new Keyframe(0.0F, AnimationHelper.createRotationalVector(0.0F, 0.0F, 0.0F), Transformation.Interpolations.CUBIC),
+                            new Keyframe(0.5F, AnimationHelper.createRotationalVector(0.0F, 0.0F, -15.0F), Transformation.Interpolations.CUBIC))
+            )
+            .addBoneAnimation(
+                    "right_ear",
+                    new Transformation(
+                            Transformation.Targets.ROTATE,
+                            new Keyframe(0.0F, AnimationHelper.createRotationalVector(0.0F, 0.0F, 0.0F), Transformation.Interpolations.CUBIC),
+                            new Keyframe(0.5F, AnimationHelper.createRotationalVector(0.0F, 0.0F, -20.0F), Transformation.Interpolations.CUBIC))
+            )
+            .build();
+
     public static final Animation SITTING = Animation.Builder.create(1.0F)
             .looping()
             .addBoneAnimation(

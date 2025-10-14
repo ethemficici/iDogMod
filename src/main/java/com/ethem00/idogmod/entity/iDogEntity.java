@@ -1,11 +1,13 @@
 package com.ethem00.idogmod.entity;
 
+import com.ethem00.idogmod.entity.ai.goal.iDogAttackWithOwnerGoal;
 import com.ethem00.idogmod.entity.ai.goal.iDogBegGoal;
 import com.ethem00.idogmod.iDogMod;
 import com.google.common.annotations.VisibleForTesting;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.util.telemetry.WorldUnloadedEvent;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
@@ -51,6 +53,7 @@ import java.util.function.Predicate;
 
 public class iDogEntity extends TameableEntity implements Angerable, SingleStackInventory {
     private static final TrackedData<Boolean> BEGGING = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+    private static final TrackedData<Boolean> IS_PLAYING = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     private static final TrackedData<String> CURRENT_DISC = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.STRING);
     private static final UniformIntProvider ANGER_TIME_RANGE = TimeHelper.betweenSeconds(20, 120);
     private SoundEvent currentSong;
@@ -71,9 +74,9 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(1, ItemStack.EMPTY);
     private long tickCount;
     private long recordStartTick;
-    private boolean isPlaying;
     private boolean loopThisSong;
     private boolean alertMe;
+    private boolean hasDisk;
     private float songVolume;
 
     public iDogEntity(EntityType<? extends TameableEntity> entityType, World world) {
@@ -94,7 +97,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         this.goalSelector.add(10, new LookAtEntityGoal(this, PlayerEntity.class, 8.0F));
         this.goalSelector.add(10, new LookAroundGoal(this));
         this.targetSelector.add(1, new TrackOwnerAttackerGoal(this));
-        this.targetSelector.add(2, new AttackWithOwnerGoal(this));
+        this.targetSelector.add(2, new iDogAttackWithOwnerGoal(this));
         this.targetSelector.add(3, new RevengeGoal(this).setGroupRevenge());
         this.targetSelector.add(4, new ActiveTargetGoal<>(
                 this,
@@ -102,7 +105,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
                 10,
                 true,
                 false,
-                entity -> this.shouldAngerAt(entity)
+                entity -> this.shouldAngerAtTarget(entity)
         ));
         this.targetSelector.add(5, new UntamedActiveTargetGoal(this, AnimalEntity.class, false, FOLLOW_TAMED_PREDICATE));
         this.targetSelector.add(6, new UntamedActiveTargetGoal(this, TurtleEntity.class, false, TurtleEntity.BABY_TURTLE_ON_LAND_FILTER));
@@ -125,16 +128,16 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     @Override
     protected void initDataTracker() {
         super.initDataTracker();
+
+        this.dataTracker.startTracking(IS_PLAYING, false);
         this.dataTracker.startTracking(BEGGING, false);
         this.dataTracker.startTracking(CURRENT_DISC, "none");
     }
 
-    public String getCurrentDisc() {
-        return this.dataTracker.get(CURRENT_DISC); //dataTracker.get results in the value, not the tracked data ID.
-    }
-
-    public void setCurrentDisc(String discName) {
-        this.dataTracker.set(CURRENT_DISC, discName);
+    @Override
+    public void onRemoved() {
+        super.onRemoved();
+        this.dataTracker.set(IS_PLAYING, false);
     }
 
     @Override
@@ -157,7 +160,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         } else {
             Entity entity = source.getAttacker();
             if (!this.getWorld().isClient) {
-                this.setSitting(false);
+                super.setSitting(false);
             }
 
             if (entity != null && !(entity instanceof PlayerEntity) && !(entity instanceof PersistentProjectileEntity)) {
@@ -236,39 +239,58 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         return this.angryAt;
     }
 
+    @Override
+    public void tickMovement() {
+        super.tickMovement();
+
+        if (!this.getWorld().isClient) {
+            this.tickAngerLogic((ServerWorld)this.getWorld(), true);
+        }
+    }
 
     //**!* Start of Jukebox *!**//
     @Override
-    public void readNbt(NbtCompound nbt) {
-        super.readNbt(nbt);
+    public void readCustomDataFromNbt(NbtCompound nbt) {
+        super.readCustomDataFromNbt(nbt);
         if (nbt.contains("RecordItem", NbtElement.COMPOUND_TYPE)) {
             this.inventory.set(0, ItemStack.fromNbt(nbt.getCompound("RecordItem")));
         }
 
-        this.isPlaying = nbt.getBoolean("IsPlaying");
         this.loopThisSong = nbt.getBoolean("LoopThisSong");
         this.alertMe = nbt.getBoolean("AlertMe");
         this.songVolume = nbt.getFloat("SongVolume");
         this.recordStartTick = nbt.getLong("RecordStartTick");
         this.tickCount = nbt.getLong("TickCount");
+
+        if (nbt.contains("CurrentDisc")) {
+            String disc = nbt.getString("CurrentDisc");
+            this.setCurrentDisc(disc); // <---- force sync to clients
+        }
     }
 
     @Override
-    public NbtCompound writeNbt(NbtCompound nbt) {
-        super.writeNbt(nbt);
+    public void writeCustomDataToNbt(NbtCompound nbt) {
+        super.writeCustomDataToNbt(nbt);
         if (!this.getStack().isEmpty()) {
             nbt.put("RecordItem", this.getStack().writeNbt(new NbtCompound()));
         }
 
         //TODO: NBT based volume control, Music Looping, and Alerts for danger and treasure minecarts
         // On alert, volume for sound instance is lerped to 0 until the alert finishes, and then it is lerped back to its original volume.
-        nbt.putBoolean("IsPlaying", this.isPlaying);
         nbt.putBoolean("LoopThisSong", this.loopThisSong);
         nbt.putBoolean("AlertMe", this.alertMe);
         nbt.putFloat("SongVolume", this.songVolume);
         nbt.putLong("RecordStartTick", this.recordStartTick);
         nbt.putLong("TickCount", this.tickCount);
-        return nbt;
+        nbt.putString("CurrentDisc", this.getCurrentDisc());
+    }
+
+    public String getCurrentDisc() {
+        return this.dataTracker.get(CURRENT_DISC); //dataTracker.get results in the value, not the tracked data ID.
+    }
+
+    public void setCurrentDisc(String discName) {
+        this.dataTracker.set(CURRENT_DISC, discName);
     }
 
     public void setLoopBool(boolean passedBool) {
@@ -288,7 +310,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     }
 
     public boolean isPlayingRecord() {
-        return !this.getStack().isEmpty() && this.isPlaying;
+        return this.dataTracker.get(IS_PLAYING); //Previously: return !this.getStack().isEmpty() && this.isPlaying;
     }
 
     @Override
@@ -298,7 +320,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
 
     @VisibleForTesting
     public void startPlaying(MusicDiscItem musicDisc) {
-        this.isPlaying = true;
+        this.dataTracker.set(IS_PLAYING, true);
         playSound(SoundEvents.ENTITY_ITEM_FRAME_ROTATE_ITEM, 2.0F, 0.25F);
         playSound(SoundEvents.ITEM_BOTTLE_FILL_DRAGONBREATH, 2.0F, 0.5F);
 
@@ -322,7 +344,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     }
 
     private void stopPlaying() {
-        this.isPlaying = false;
+        this.dataTracker.set(IS_PLAYING, false);
         playSound(SoundEvents.ENTITY_ITEM_FRAME_REMOVE_ITEM, 2.0F, 2.0F);
         this.markDirty();
     }
@@ -384,6 +406,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     }
     //**!* End of Jukebox *!**//
 
+    @Override
     public ActionResult interactMob(PlayerEntity player, Hand hand) {
 
         //TODO tree
@@ -395,12 +418,16 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
 
         ItemStack itemStack = player.getStackInHand(hand);
 
-            if (!this.isOwner(player) || !this.isTamed()) { // if player is not owner, it is not tamed,
-                if (itemStack.isOf(Items.BONE) && !this.hasAngerTime()) {
+            //TODO isTamed() seems to be lost after reconnect
+            if (!this.isOwner(player) && !this.isTamed()) { // if player is not owner, it is not tamed,
 
+                if (itemStack.isOf(Items.BONE) && !this.hasAngerTime()) {
                     if (this.random.nextInt(3) == 0) { // 25% chance to tame
                         this.setOwner(player);
                         this.navigation.stop();
+                        if (!this.getWorld().isClient) {
+                            super.setSitting(true);
+                        }
                         this.setTarget(null);
                         this.getWorld().sendEntityStatus(this, (byte) 7); // heart particles
                         return ActionResult.success(this.getWorld().isClient);
@@ -418,18 +445,26 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
 
             if (this.isOwner(player) && this.isTamed()) {
 
-                if (!itemStack.isOf(Items.IRON_NUGGET) && !itemStack.isOf(Items.IRON_INGOT) && !itemStack.isOf(Items.COPPER_INGOT) && !itemStack.isIn(ItemTags.MUSIC_DISCS)) {
+                Boolean canHeal = (itemStack.isOf(Items.IRON_NUGGET) || itemStack.isOf(Items.IRON_INGOT) || itemStack.isOf(Items.COPPER_INGOT) && (this.getHealth() != this.getMaxHealth()));
+                if (!canHeal && !itemStack.isIn(ItemTags.MUSIC_DISCS)) {
 
                     if (isPlayingRecord() && player.isSneaking()) //If the iDog is playing, and player is sneaking.
                     {
                         removeStack();
+                        return ActionResult.success(this.getWorld().isClient);
                     } else {
-                        if(isSitting()) {
-                            setSitting(true);
-                        } else { setSitting(false); }
-                    }
 
-                    return ActionResult.PASS;
+                        ActionResult actionResult = super.interactMob(player, hand);
+                        if ((!actionResult.isAccepted() || this.isBaby()) && this.isOwner(player)) {
+                            if (!this.getWorld().isClient) {
+                                super.setSitting(!isSitting());
+                            }
+                            this.jumping = false;
+                            this.navigation.stop();
+                            this.setTarget(null);
+                            return ActionResult.SUCCESS;
+                        }
+                    }
                 }
 
                 if (!itemStack.isIn(ItemTags.MUSIC_DISCS)) {
@@ -445,7 +480,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
                     } else {
                         float g = 1.0F + (this.random.nextFloat() - this.random.nextFloat()) * 0.2F;
                         this.playSound(SoundEvents.ENTITY_PLAYER_BURP, 1.0F, g);
-                        this.playSound(SoundEvents.ENTITY_IRON_GOLEM_REPAIR, 1.0F, g);
+                        this.playSound(SoundEvents.ENTITY_IRON_GOLEM_REPAIR, 0.5F, g);
                         if (!player.getAbilities().creativeMode) {
                             itemStack.decrement(1);
                         }
@@ -454,15 +489,26 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
                     }
                 }
 
-                if (isPlayingRecord() && itemStack.isIn(ItemTags.MUSIC_DISCS)) {
-                    removeStack();
-                } else {
-                    setStack(0, itemStack);
-                }
+                if (itemStack.isIn(ItemTags.MUSIC_DISCS)) {
 
-                return ActionResult.success(this.getWorld().isClient);
+                    if (getCurrentDisc() != "none") {
+                        removeStack();
+                    } else {
+                        setStack(0, itemStack);
+                        if (!player.getAbilities().creativeMode) {
+                            itemStack.decrement(1);
+                        }
+                    }
+                    return ActionResult.success(this.getWorld().isClient);
+                }
             }
             return ActionResult.PASS;
+    }
+
+    @Override
+    public void setSitting(boolean sitting) {
+        super.setSitting(sitting);
+        this.setInSittingPose(sitting);
     }
 
     @Override
@@ -473,6 +519,25 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     class iDogEscapeDangerGoal extends EscapeDangerGoal {
         public iDogEscapeDangerGoal(double speed) {
             super(iDogEntity.this, speed);
+        }
+    }
+
+    boolean shouldAngerAtTarget(LivingEntity entity) {
+        if (!this.canTarget(entity)) {
+            return false;
+        } else {
+
+            if(entity instanceof TameableEntity)
+            {
+                if(((TameableEntity) entity).getOwner() == this.getOwner()) {
+                    return false;
+                } else {
+                    return entity.getType() == EntityType.PLAYER && this.isUniversallyAngry(entity.getWorld()) ? true : entity.getUuid().equals(this.getAngryAt());
+
+                }
+            } else {
+                return entity.getType() == EntityType.PLAYER && this.isUniversallyAngry(entity.getWorld()) ? true : entity.getUuid().equals(this.getAngryAt());
+            }
         }
     }
 

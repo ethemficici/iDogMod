@@ -5,6 +5,7 @@ import net.minecraft.entity.ai.TargetPredicate;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.passive.WolfEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.util.Hand;
@@ -66,8 +67,15 @@ public class iDogBegGoal extends Goal {
     private boolean isAttractive(PlayerEntity player) {
         for (Hand hand : Hand.values()) {
             ItemStack itemStack = player.getStackInHand(hand);
-            if (this.iDog.isTamed() && itemStack.isOf(Items.BONE)) {
+            if (!this.iDog.isTamed() && itemStack.isOf(Items.BONE)) {
                 return true;
+            }
+
+            if (this.iDog.isTamed()) {
+                if(itemStack.isOf(Items.BONE)) {return true;}
+                if(this.iDog.getHealth() != this.iDog.getMaxHealth()) {
+                    if(itemStack.isOf(Items.IRON_INGOT) || itemStack.isOf(Items.IRON_NUGGET) || itemStack.isOf(Items.COPPER_INGOT)) {return true;}
+                }
             }
 
             if (this.iDog.isBreedingItem(itemStack)) {

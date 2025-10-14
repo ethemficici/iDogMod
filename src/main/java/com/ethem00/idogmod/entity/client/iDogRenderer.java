@@ -27,7 +27,14 @@ public class iDogRenderer extends MobEntityRenderer<iDogEntity, iDogEntityModel<
 
     @Override
     public Identifier getTexture(iDogEntity entity) {
-        return BODY_TEXTURE;
+
+        if(entity.isInvisible()) { //TODO Figure out what to pass here! Maybe do something in render() instead?
+            return BODY_TEXTURE;
+
+        } else {
+            return BODY_TEXTURE;
+
+        }
     }
 
     @Override
