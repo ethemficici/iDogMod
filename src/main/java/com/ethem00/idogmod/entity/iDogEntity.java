@@ -171,11 +171,14 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
                 if(this.cumulativeTick <= 0) {this.wasBegging = false; this.cumulativeTick = 0;}
             }
 
+            /*
             if(this.isPlayingRecord() && this.songVolume != 0) {
                 songDisplayLogic();
             } else {
                 setEyeCover(0);
             }
+
+             */
         }
     }
 
@@ -203,6 +206,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
 
         //TODO: If music disc is 11 or (or 5 if there is time), do unique logic
         // Alternate from Pure Red to Interpolated Effects based on song sections.
+
 
         if(this.isSongFinished(this.getDisc())) {
             stopPlayingRecord(); //Ends any moving sound instances.
@@ -513,7 +517,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     }
 
     public MusicDiscItem getDisc() {
-        return ((MusicDiscItem) this.getStack().getItem());
+        return ((MusicDiscItem) this.getStack().getItem()); //TODO: This is crashing! Can't cast AIR to disc!
     }
 
     @Override
