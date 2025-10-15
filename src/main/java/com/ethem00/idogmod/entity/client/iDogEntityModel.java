@@ -23,6 +23,15 @@ public class iDogEntityModel<T extends iDogEntity> extends SinglePartEntityModel
     private final ModelPart rightFrontLeg;
     private final ModelPart leftFrontLeg;
 
+    private final ModelPart eyes;
+    private final ModelPart eye0;
+    private final ModelPart eye1;
+    private final ModelPart eye2;
+    private final ModelPart eye3;
+    private final ModelPart eye4;
+    private final ModelPart eye5;
+    private final ModelPart eye6;
+
 	public iDogEntityModel(ModelPart root) {
         this.root = root;
 		this.idog = root.getChild("iDog");
@@ -31,7 +40,17 @@ public class iDogEntityModel<T extends iDogEntity> extends SinglePartEntityModel
         this.rightFrontLeg = idog.getChild("right_front_leg");
         this.leftHindLeg = idog.getChild("left_hind_leg");
         this.rightHindLeg = idog.getChild("right_hind_leg");
+
+        this.eyes = head.getChild("eyes");
+        this.eye0 = eyes.getChild("eye0");
+        this.eye1 = eyes.getChild("eye1");
+        this.eye2 = eyes.getChild("eye2");
+        this.eye3 = eyes.getChild("eye3");
+        this.eye4 = eyes.getChild("eye4");
+        this.eye5 = eyes.getChild("eye5");
+        this.eye6 = eyes.getChild("eye6");
 	}
+
 	public static TexturedModelData getTexturedModelData() {
 		ModelData modelData = new ModelData();
 		ModelPartData modelPartData = modelData.getRoot();
@@ -43,6 +62,16 @@ public class iDogEntityModel<T extends iDogEntity> extends SinglePartEntityModel
 		ModelPartData nose_r1 = head.addChild("nose_r1", ModelPartBuilder.create().uv(25, 0).cuboid(-1.0F, 5.0F, 16.0F, 6.0F, 2.0F, 1.0F, new Dilation(0.0F)), ModelTransform.of(-2.0F, -10.0F, -17.0F, -0.3054F, 0.0F, 0.0F));
 
 		ModelPartData head_r1 = head.addChild("head_r1", ModelPartBuilder.create().uv(0, 0).cuboid(-5.0F, -6.3523F, -4.2081F, 10.0F, 12.0F, 4.0F, new Dilation(0.0F)), ModelTransform.of(0.0F, -2.0F, 2.0F, -0.3054F, 0.0F, 0.0F));
+
+        ModelPartData eyes = head.addChild("eyes", ModelPartBuilder.create(), ModelTransform.pivot(0.0F, 0.0F, 0.0F));
+
+        ModelPartData eye0_r1 = eyes.addChild("eye0", ModelPartBuilder.create().uv(8, 8).cuboid(-1.0F, -2.3523F, -4.3081F, 2.0F, 2.0F, 0.0F, new Dilation(0.0F)), ModelTransform.of(0.0F, -2.0F, 2.0F, -0.3054F, 0.0F, 0.0F));
+        ModelPartData eye1_r1 = eyes.addChild("eye1", ModelPartBuilder.create().uv(4, 5).cuboid(-4.0F, -4.3523F, -4.3081F, 2.0F, 2.0F, 0.0F, new Dilation(0.0F)), ModelTransform.of(0.0F, -2.0F, 2.0F, -0.3054F, 0.0F, 0.0F));
+        ModelPartData eye2_r1 = eyes.addChild("eye2", ModelPartBuilder.create().uv(8, 5).cuboid(-1.0F, -5.3523F, -4.3081F, 2.0F, 2.0F, 0.0F, new Dilation(0.0F)), ModelTransform.of(0.0F, -2.0F, 2.0F, -0.3054F, 0.0F, 0.0F));
+        ModelPartData eye3_r1 = eyes.addChild("eye3", ModelPartBuilder.create().uv(12, 5).cuboid(2.0F, -4.3523F, -4.3081F, 2.0F, 2.0F, 0.0F, new Dilation(0.0F)), ModelTransform.of(0.0F, -2.0F, 2.0F, -0.3054F, 0.0F, 0.0F));
+        ModelPartData eye4_r1 = eyes.addChild("eye4", ModelPartBuilder.create().uv(12, 11).cuboid(2.0F, -0.3523F, -4.3081F, 2.0F, 2.0F, 0.0F, new Dilation(0.0F)), ModelTransform.of(0.0F, -2.0F, 2.0F, -0.3054F, 0.0F, 0.0F));
+        ModelPartData eye5_r1 = eyes.addChild("eye5", ModelPartBuilder.create().uv(8, 11).cuboid(-1.0F, 0.6477F, -4.3081F, 2.0F, 2.0F, 0.0F, new Dilation(0.0F)), ModelTransform.of(0.0F, -2.0F, 2.0F, -0.3054F, 0.0F, 0.0F));
+        ModelPartData eye6_r1 = eyes.addChild("eye6", ModelPartBuilder.create().uv(4, 11).cuboid(-4.0F, -0.3523F, -4.3081F, 2.0F, 2.0F, 0.0F, new Dilation(0.0F)), ModelTransform.of(0.0F, -2.0F, 2.0F, -0.3054F, 0.0F, 0.0F));
 
 		ModelPartData lEar = head.addChild("left_ear", ModelPartBuilder.create(), ModelTransform.pivot(-5.5F, -9.5F, 1.5F));
 

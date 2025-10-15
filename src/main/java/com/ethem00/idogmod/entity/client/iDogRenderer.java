@@ -23,7 +23,6 @@ public class iDogRenderer extends MobEntityRenderer<iDogEntity, iDogEntityModel<
 
     public iDogRenderer(EntityRendererFactory.Context context) {
         super(context, new iDogEntityModel<>(context.getPart(ModModelLayers.IDOG)), 0.5f);
-        this.addFeature(new iDogLidFeatureRenderer(this));
         this.addFeature(new iDogBatteryFeatureRenderer(this));
         this.addFeature(new iDogEyesFeatureRenderer(this));
     }
