@@ -17,7 +17,7 @@ import net.minecraft.util.Identifier;
 import static org.apache.commons.lang3.RandomUtils.nextInt;
 
 @Environment(EnvType.CLIENT)
-public class iDodLidFeatureRenderer<T extends iDogEntity, M extends iDogEntityModel<T>> extends EyesFeatureRenderer<T, M> {
+public class iDogLidFeatureRenderer<T extends iDogEntity, M extends iDogEntityModel<T>> extends EyesFeatureRenderer<T, M> {
 
     private static final RenderLayer COVER_INVERTED_CENTER = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_center.png"));
     private static final RenderLayer COVER_NONE = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_none.png"));
@@ -45,7 +45,7 @@ public class iDodLidFeatureRenderer<T extends iDogEntity, M extends iDogEntityMo
     private static final RenderLayer COVER_BOTTOM_CENTER = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_bottom_center.png"));
 
 
-    public iDodLidFeatureRenderer(FeatureRendererContext<T, M> featureRendererContext) {
+    public iDogLidFeatureRenderer(FeatureRendererContext<T, M> featureRendererContext) {
         super(featureRendererContext);
     }
 

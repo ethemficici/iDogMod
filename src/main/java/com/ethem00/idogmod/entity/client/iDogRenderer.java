@@ -1,6 +1,6 @@
 package com.ethem00.idogmod.entity.client;
 
-import com.ethem00.idogmod.entity.client.render.entity.feature.iDodLidFeatureRenderer;
+import com.ethem00.idogmod.entity.client.render.entity.feature.iDogLidFeatureRenderer;
 import com.ethem00.idogmod.entity.client.render.entity.feature.iDogBatteryFeatureRenderer;
 import com.ethem00.idogmod.entity.client.render.entity.feature.iDogEyesFeatureRenderer;
 import com.ethem00.idogmod.entity.iDogEntity;
@@ -23,6 +23,7 @@ public class iDogRenderer extends MobEntityRenderer<iDogEntity, iDogEntityModel<
 
     public iDogRenderer(EntityRendererFactory.Context context) {
         super(context, new iDogEntityModel<>(context.getPart(ModModelLayers.IDOG)), 0.5f);
+        this.addFeature(new iDogLidFeatureRenderer(this));
         this.addFeature(new iDogBatteryFeatureRenderer(this));
         this.addFeature(new iDogEyesFeatureRenderer(this));
     }
