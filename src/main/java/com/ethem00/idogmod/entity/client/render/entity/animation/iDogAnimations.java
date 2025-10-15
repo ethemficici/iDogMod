@@ -6,6 +6,16 @@ import net.minecraft.client.render.entity.animation.Keyframe;
 import net.minecraft.client.render.entity.animation.Transformation;
 
 public class iDogAnimations {
+    public static final Animation TAIL_HEALTH = Animation.Builder.create(30.0F) //Corresponds to max HP of 30
+            .addBoneAnimation(
+                    "tail",
+                    new Transformation(
+                            Transformation.Targets.ROTATE,
+                            new Keyframe(0.0F, AnimationHelper.createRotationalVector(0, 0, 0), Transformation.Interpolations.CUBIC),
+                            new Keyframe(30.0F, AnimationHelper.createRotationalVector(-105.0F, 0.0F, 0F), Transformation.Interpolations.CUBIC))
+            )
+            .build();
+
     public static final Animation BEGGING = Animation.Builder.create(60.0F) //Corresponds with limbSwing and limbDistance .create(60) and lS(60)+lD(60) will instantly snap to the final frame.
             .addBoneAnimation(
                     "head",

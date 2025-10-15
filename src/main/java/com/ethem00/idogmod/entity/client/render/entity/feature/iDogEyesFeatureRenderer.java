@@ -1,6 +1,7 @@
 package com.ethem00.idogmod.entity.client.render.entity.feature;
 
 import com.ethem00.idogmod.entity.client.iDogEntityModel;
+import com.ethem00.idogmod.entity.client.render.entity.animation.iDogEasing;
 import com.ethem00.idogmod.entity.iDogEntity;
 import com.ethem00.idogmod.iDogMod;
 import net.fabricmc.api.EnvType;
@@ -9,15 +10,16 @@ import net.minecraft.client.render.*;
 import net.minecraft.client.render.entity.feature.EyesFeatureRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.decoration.DisplayEntity;
 import net.minecraft.util.Identifier;
 
 import static org.apache.commons.lang3.RandomUtils.nextInt;
 
-/*
-https://easings.net/
-
-Easing functions provided by Andrey Sitnik and Ivan Solovev
+/**
+ * Eye interpolation and easing logic handled in {@link iDogEntity}
+ * Also see {@link iDogEasing}
+ *
+ * https://easings.net/
+ * Easing mathematical functions provided by Andrey Sitnik and Ivan Solovev
  */
 
 
@@ -46,6 +48,19 @@ public class iDogEyesFeatureRenderer<T extends iDogEntity, M extends iDogEntityM
         super(featureRendererContext);
     }
 
+    /**
+     * See {@link iDogEntity#songDisplayLogic()}
+     * Clockwise eye order
+     *
+     *      *   2   *
+     *      1   *   3
+     *          0
+     *      6   *   4
+     *      *   5   *
+     */
+    //TODO: REWORK? All of this needs to be achieved using individual eyes. Not grouped.
+    // Each eye needs a vectorConsumer.
+    // Individual
     private RenderLayer getEyesTexture(String disc) {
 
         return switch (disc) {
@@ -77,12 +92,11 @@ public class iDogEyesFeatureRenderer<T extends iDogEntity, M extends iDogEntityM
 
     @Override
     public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light,
-            T iDogEntity, float limbAngle, float limbDistance, float tickDelta,
+            T idogEntity, float limbAngle, float limbDistance, float tickDelta,
             float animationProgress, float headYaw, float headPitch) {
 
-        String disc = iDogEntity.getCurrentDisc();
-
-        VertexConsumer vertexConsumer = vertexConsumers.getBuffer(this.getEyesTexture(disc));
+        String disc = idogEntity.getCurrentDisc();
+        VertexConsumer eyeVertexConsumer = vertexConsumers.getBuffer(this.getEyesTexture(disc));
 
         //TODO: Interpolate light with tick count to achieve pulsing effect
         // Maybe... int min = light/2; int max = light; finalDelta = (BPM * tickDelta)/10;
@@ -90,7 +104,7 @@ public class iDogEyesFeatureRenderer<T extends iDogEntity, M extends iDogEntityM
         // Every 10 seconds it will go from min to max brightness. Maybe tie the alpha channel into it and vary the RGB values based on the current disc.
         // EG mellohi is purple so it would lessen the G values, or alternate red and blue so that if one is 0 the other is 1. Or something similar.
         // Varying the lerp delta to match the BPM of the current disc would also look interesting.
-        this.getContextModel().render(matrices, vertexConsumer, 15728640, OverlayTexture.DEFAULT_UV, 1.0F, 1.0F, 1.0F, 1.0F);
+        this.getContextModel().render(matrices, eyeVertexConsumer, 15728640, OverlayTexture.DEFAULT_UV, 1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     public float pickLerpEffect(Boolean isRandomEnabled) {

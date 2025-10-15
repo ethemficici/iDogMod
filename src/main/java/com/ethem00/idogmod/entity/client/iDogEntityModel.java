@@ -11,11 +11,12 @@ import net.minecraft.client.render.entity.animation.CamelAnimations;
 import net.minecraft.client.render.entity.model.SinglePartEntityModel;
 import net.minecraft.client.util.math.MatrixStack;
 import com.ethem00.idogmod.entity.iDogEntity;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.math.MathHelper;
 
 public class iDogEntityModel<T extends iDogEntity> extends SinglePartEntityModel<T> {
 	private final ModelPart root;
-    private final ModelPart iDog;
+    private final ModelPart idog;
     private final ModelPart head;
     private final ModelPart rightHindLeg;
     private final ModelPart leftHindLeg;
@@ -24,12 +25,12 @@ public class iDogEntityModel<T extends iDogEntity> extends SinglePartEntityModel
 
 	public iDogEntityModel(ModelPart root) {
         this.root = root;
-		this.iDog = root.getChild("iDog");
-		this.head = iDog.getChild("head");
-        this.leftFrontLeg = iDog.getChild("left_front_leg");
-        this.rightFrontLeg = iDog.getChild("right_front_leg");
-        this.leftHindLeg = iDog.getChild("left_hind_leg");
-        this.rightHindLeg = iDog.getChild("right_hind_leg");
+		this.idog = root.getChild("iDog");
+		this.head = idog.getChild("head");
+        this.leftFrontLeg = idog.getChild("left_front_leg");
+        this.rightFrontLeg = idog.getChild("right_front_leg");
+        this.leftHindLeg = idog.getChild("left_hind_leg");
+        this.rightHindLeg = idog.getChild("right_hind_leg");
 	}
 	public static TexturedModelData getTexturedModelData() {
 		ModelData modelData = new ModelData();
@@ -72,23 +73,28 @@ public class iDogEntityModel<T extends iDogEntity> extends SinglePartEntityModel
 		ModelPartData tail_r1 = tail.addChild("tail_r1", ModelPartBuilder.create().uv(28, 5).cuboid(-1.0F, 0.0F, -1.0F, 2.0F, 9.0F, 2.0F, new Dilation(0.0F)), ModelTransform.of(0.0F, 0.0F, 0.0F, 2.618F, 0.0F, 0.0F));
 		return TexturedModelData.of(modelData, 64, 32);
 	}
+
 	@Override
-	public void setAngles(iDogEntity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
+	public void setAngles(iDogEntity iDog, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
         this.getPart().traverse().forEach(ModelPart::resetTransform);
         setHeadAngles(netHeadYaw, headPitch);
 
-        if(entity.isInSittingPose()) {
+        if(iDog.isInSittingPose()) {
             this.animateMovement(iDogAnimations.SITTING, 1, 1, 2.0F, 2.5F);
         }
 
-        if(entity.isBegging()) {
-            this.animateMovement(iDogAnimations.BEGGING, 60, 60, 2.0F, 2.5F);
+        if(iDog.isBegging()) {
+            this.animateMovement(iDogAnimations.BEGGING, iDog.getBegDelta(), 60, 2.0F, 2.5F);
+        } else if(!iDog.isBegging() && iDog.wasBegging()) {
+            this.animateMovement(iDogAnimations.BEGGING, iDog.getInverseBegDelta(), 60, 2.0F, 2.5F);
         }
 
-        if(!entity.isInSittingPose()) {
+        if(!iDog.isInSittingPose()) {
             this.animateMovement(iDogAnimations.WALKING_EARS_TAIL, limbSwing *2, limbSwingAmount *2, 2.0F, 2.5F);
         }
 
+        //float inverseHealth = (iDog.getMaxHealth() - iDog.getHealth());
+        //this.animateMovement(iDogAnimations.TAIL_HEALTH, inverseHealth, inverseHealth, 2.0F, 2.5F);
     }
 
     private void setHeadAngles(float headYaw, float headPitch) {
@@ -100,11 +106,11 @@ public class iDogEntityModel<T extends iDogEntity> extends SinglePartEntityModel
 
 	@Override
 	public void render(MatrixStack matrices, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha) {
-		iDog.render(matrices, vertexConsumer, light, overlay, red, green, blue, alpha);
+        idog.render(matrices, vertexConsumer, light, overlay, red, green, blue, alpha);
 	}
 
     @Override
     public ModelPart getPart() {
-        return iDog;
+        return idog;
     }
 }

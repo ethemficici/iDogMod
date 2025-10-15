@@ -1,5 +1,7 @@
 package com.ethem00.idogmod.entity.client;
 
+import com.ethem00.idogmod.entity.client.render.entity.feature.iDodLidFeatureRenderer;
+import com.ethem00.idogmod.entity.client.render.entity.feature.iDogBatteryFeatureRenderer;
 import com.ethem00.idogmod.entity.client.render.entity.feature.iDogEyesFeatureRenderer;
 import com.ethem00.idogmod.entity.iDogEntity;
 import com.ethem00.idogmod.iDogMod;
@@ -16,12 +18,12 @@ public class iDogRenderer extends MobEntityRenderer<iDogEntity, iDogEntityModel<
     private static final Identifier BODY_TEXTURE_RED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/idog_red.png");
     private static final Identifier BODY_TEXTURE_GREEN = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/idog_green.png");
     private static final Identifier BODY_TEXTURE_BLUE = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/idog_blue.png");
-
-
     //Right click with target block to make a Target iDog?
+
 
     public iDogRenderer(EntityRendererFactory.Context context) {
         super(context, new iDogEntityModel<>(context.getPart(ModModelLayers.IDOG)), 0.5f);
+        this.addFeature(new iDogBatteryFeatureRenderer(this));
         this.addFeature(new iDogEyesFeatureRenderer(this));
     }
 
