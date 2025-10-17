@@ -16,12 +16,6 @@ import net.minecraft.util.Identifier;
 
 import static org.apache.commons.lang3.RandomUtils.nextInt;
 
-/*
-https://easings.net/
-
-Easing functions provided by Andrey Sitnik and Ivan Solovev
- */
-
 
 @Environment(EnvType.CLIENT)
 public class iDogBatteryFeatureRenderer<T extends iDogEntity, M extends iDogEntityModel<T>> extends EyesFeatureRenderer<T, M> {
@@ -36,6 +30,7 @@ public class iDogBatteryFeatureRenderer<T extends iDogEntity, M extends iDogEnti
 
     private RenderLayer getBatteryTexture(float health, Boolean tamed) {
 
+        //Battery texture is 5x3. Maybe redo to check increments of 20.
         if(tamed) {
             if(health > 22.5F) {return BATTERY_100;}
             if(health <= 22.5F && health > 15) {return BATTERY_75;}
@@ -47,7 +42,6 @@ public class iDogBatteryFeatureRenderer<T extends iDogEntity, M extends iDogEnti
             if(health <= 6 && health > 3) {return BATTERY_50;}
             if(health <= 3) {return BATTERY_25;}
         }
-
         return BATTERY_100;
     }
 

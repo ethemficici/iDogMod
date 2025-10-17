@@ -25,7 +25,6 @@ public class iDogAnimations {
                             new Keyframe(30.0F, AnimationHelper.createRotationalVector(0.0F, 0.0F, -125.0F), Transformation.Interpolations.CUBIC),
                             new Keyframe(60.0F, AnimationHelper.createRotationalVector(0.0F, 0.0F, -250.0F), Transformation.Interpolations.CUBIC)
                     )
-
             )
             .addBoneAnimation(
                     "left_ear",

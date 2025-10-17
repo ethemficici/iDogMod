@@ -16,7 +16,7 @@ import net.minecraft.util.Identifier;
 import static org.apache.commons.lang3.RandomUtils.nextInt;
 
 /**
- * Eye interpolation and easing logic handled in {@link iDogEntity}
+ * Eye interpolation and easing logic handled in {@link iDogEntity#songDisplayLogic()}
  * Also see {@link iDogEasing}
  *
  * https://easings.net/
@@ -26,27 +26,32 @@ import static org.apache.commons.lang3.RandomUtils.nextInt;
 
 @Environment(EnvType.CLIENT)
 public class iDogEyesFeatureRenderer<T extends iDogEntity, M extends iDogEntityModel<T>> extends EyesFeatureRenderer<T, M> {
-    private static final RenderLayer DEFAULT_EYES = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/idog_eyes.png"));
+    private static final RenderLayer DEFAULT_EYES_RENDERLAYER = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_5.png"));
+    private static final Identifier DEFAULT_EYES = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/idog_eyes.png");
 
-    private static final RenderLayer EYES_5 = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_5.png"));
-    private static final RenderLayer EYES_11 = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_11.png"));
-    private static final RenderLayer EYES_13 = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_13.png"));
-    private static final RenderLayer EYES_BLOCKS = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_blocks.png"));
-    private static final RenderLayer EYES_CAT = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_cat.png"));
-    private static final RenderLayer EYES_CHIRP = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_chirp.png"));
-    private static final RenderLayer EYES_FAR = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_far.png"));
-    private static final RenderLayer EYES_MALL = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_mall.png"));
-    private static final RenderLayer EYES_MELLOHI = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_mellohi.png"));
-    private static final RenderLayer EYES_OTHERSIDE = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_otherside.png"));
-    private static final RenderLayer EYES_PIGSTEP = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_pigstep.png"));
-    private static final RenderLayer EYES_RELIC = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_relic.png"));
-    private static final RenderLayer EYES_STAL = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_stal.png"));
-    private static final RenderLayer EYES_STRAD = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_strad.png"));
-    private static final RenderLayer EYES_WAIT = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_wait.png"));
-    private static final RenderLayer EYES_WARD = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_ward.png"));
+    private static final Identifier EYES_5 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_5.png");
+    private static final Identifier EYES_11 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_11.png");
+    private static final Identifier EYES_13 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_13.png");
+    private static final Identifier EYES_BLOCKS = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_blocks.png");
+    private static final Identifier EYES_CAT = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_cat.png");
+    private static final Identifier EYES_CHIRP = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_chirp.png");
+    private static final Identifier EYES_FAR = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_far.png");
+    private static final Identifier EYES_MALL = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_mall.png");
+    private static final Identifier EYES_MELLOHI = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_mellohi.png");
+    private static final Identifier EYES_OTHERSIDE = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_otherside.png");
+    private static final Identifier EYES_PIGSTEP = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_pigstep.png");
+    private static final Identifier EYES_RELIC = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_relic.png");
+    private static final Identifier EYES_STAL = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_stal.png");
+    private static final Identifier EYES_STRAD = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_strad.png");
+    private static final Identifier EYES_WAIT = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_wait.png");
+    private static final Identifier EYES_WARD = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_ward.png");
 
     public iDogEyesFeatureRenderer(FeatureRendererContext<T, M> featureRendererContext) {
         super(featureRendererContext);
+    }
+    @Override
+    public RenderLayer getEyesTexture() {
+        return DEFAULT_EYES_RENDERLAYER;
     }
 
     /**
@@ -62,7 +67,7 @@ public class iDogEyesFeatureRenderer<T extends iDogEntity, M extends iDogEntityM
     //TODO: REWORK? All of this needs to be achieved using individual eyes. Not grouped.
     // Each eye needs a vectorConsumer.
     // Individual
-    private RenderLayer getEyesTexture(String disc) {
+    private Identifier getEyesIdentifier(String disc) {
 
         return switch (disc) {
             case "none" -> DEFAULT_EYES;
@@ -82,22 +87,16 @@ public class iDogEyesFeatureRenderer<T extends iDogEntity, M extends iDogEntityM
             case "music_disc_strad" -> EYES_STRAD;
             case "music_disc_wait" -> EYES_WAIT;
             case "music_disc_ward" -> EYES_WARD;
-            default -> DEFAULT_EYES;
+            default -> DEFAULT_EYES; //Replace with random getter, maybe check first letter from music_disc_[???] for modded songs.
         };
     }
 
     @Override
-    public RenderLayer getEyesTexture() {
-        return DEFAULT_EYES;
-    }
-
-    @Override
     public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light,
-                       T idogEntity, float limbAngle, float limbDistance, float tickDelta,
+                       T iDog, float limbAngle, float limbDistance, float tickDelta,
                        float animationProgress, float headYaw, float headPitch) {
 
-        String disc = idogEntity.getCurrentDisc();
-        VertexConsumer eyeVertexConsumer = vertexConsumers.getBuffer(this.getEyesTexture(disc));
+        VertexConsumer eyeVertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntityTranslucent(getEyesIdentifier(iDog.getCurrentDisc())));
 
         //TODO: Interpolate light with tick count to achieve pulsing effect
         // Maybe... int min = light/2; int max = light; finalDelta = (BPM * tickDelta)/10;
@@ -105,11 +104,10 @@ public class iDogEyesFeatureRenderer<T extends iDogEntity, M extends iDogEntityM
         // Every 10 seconds it will go from min to max brightness. Maybe tie the alpha channel into it and vary the RGB values based on the current disc.
         // EG mellohi is purple so it would lessen the G values, or alternate red and blue so that if one is 0 the other is 1. Or something similar.
         // Varying the lerp delta to match the BPM of the current disc would also look interesting.
-        this.getContextModel().render(matrices, eyeVertexConsumer, 15728640, OverlayTexture.DEFAULT_UV, 1.0F, 1.0F, 1.0F, 1.0F);
+        this.getContextModel().render(matrices, eyeVertexConsumer, 15728640, OverlayTexture.DEFAULT_UV, 1.0F, 1.0F, 1.0F, iDog.getEyeAlpha());
     }
 
     public float pickLerpEffect(Boolean isRandomEnabled) {
-
         if(isRandomEnabled) {
             return switch (nextInt(0, 8)) {
                 case 0 -> stobeInterpolation();

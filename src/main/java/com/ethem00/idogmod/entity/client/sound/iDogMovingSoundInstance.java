@@ -21,7 +21,7 @@ public class iDogMovingSoundInstance extends MovingSoundInstance {
 
         System.out.println("iDog is now playing: " + sound.getId().toString());
         System.out.println("With volume of: " + volume);
-        if(repeat) { System.out.println("With looping"); } else { System.out.println("Without looping"); }
+        if(this.repeat) { System.out.println("With looping"); } else { System.out.println("Without looping"); }
     }
 
     @Override
@@ -32,19 +32,32 @@ public class iDogMovingSoundInstance extends MovingSoundInstance {
         this.y = iDog.getY();
         this.z = iDog.getZ();
 
+
+        //Todo: Ping original entity when SoundInstance is completed..? Could help with eye animation desync/pause desync...
+        // Currently if the iDog teleports, this audio is finished due to unload and the player has to manually reset the song.
+        // The iDog entity itself never realizes the sound instance was cancelled.
         if(iDog.isRemoved()) {
             this.setDone();
             System.out.println("iDog song playback has stopped.");
             System.out.println("Due to iDog entity removal.");
             System.out.println("Volume was: " + volume);
-            if(repeat) { System.out.println("And it was looping"); } else { System.out.println("And it wasn't looping"); }
+            if(this.repeat) { System.out.println("And it was looping"); } else { System.out.println("And it wasn't looping"); }
         }
         if(!iDog.isPlayingRecord()) {
             this.setDone();
             System.out.println("iDog song playback has stopped.");
             System.out.println("Due to record removal.");
             System.out.println("Volume was: " + volume);
-            if(repeat) { System.out.println("And it was looping"); } else { System.out.println("And it wasn't looping"); }
+            if(this.repeat) { System.out.println("And it was looping"); } else { System.out.println("And it wasn't looping"); }
+        }
+        if(this.volume <= 0) {
+            this.setDone();
+            System.out.println("iDog song playback has stopped.");
+            System.out.println("Due to muted volume.");
+            System.out.println("Volume was: " + volume);
+            if(this.repeat) { System.out.println("And it was looping"); } else { System.out.println("And it wasn't looping"); }
+            // DON'T FORGET TO USE >> this. << FOR INSTANCES! ALWAYS TRIPLE CHECK! TRIPLE BAKA!
+            // THAT'S WHY IT WASN'T WORKING BEFORE!
         }
     }
 }

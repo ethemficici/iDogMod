@@ -24,6 +24,7 @@ import net.minecraft.entity.passive.*;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
 import net.minecraft.inventory.SingleStackInventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.MusicDiscItem;
@@ -45,11 +46,13 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.intprovider.UniformIntProvider;
 import net.minecraft.world.EntityView;
 import net.minecraft.world.World;
+import net.minecraft.world.event.GameEvent;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.Objects;
+import java.util.Random;
 import java.util.UUID;
 import java.util.function.Predicate;
 
@@ -57,44 +60,51 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     private static final TrackedData<Boolean> BEGGING = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     private static final TrackedData<Boolean> IS_PLAYING = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     private static final TrackedData<String> CURRENT_DISC = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.STRING);
-    private static final TrackedData<Long> RECORD_END_TICK =DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.LONG);
+    private static final TrackedData<Long> SONG_END_TICK =DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.LONG);
+
     private static final UniformIntProvider ANGER_TIME_RANGE = TimeHelper.betweenSeconds(20, 120);
     private boolean wasBegging = false;
-    private int cumulativeTick = 0;
+    private int cumulativeBegTick = 0;
     private SoundEvent currentSong;
     private int angerTime;
     @Nullable
     private UUID angryAt;
     public static final AnimationState idleAnimationState = new AnimationState();
-    private int idleAnimationTimeout = 0;
-    private float begAnimationProgress;
-    private float lastBegAnimationProgress;
     public static final Predicate<LivingEntity> FOLLOW_TAMED_PREDICATE = entity -> {
         EntityType<?> entityType = entity.getType();
         return entityType == EntityType.SHEEP || entityType == EntityType.RABBIT || entityType == EntityType.FOX;
     };
 
-    //Jukebox
-    private static final int SECOND_PER_TICK = 20;
+    //Jukebox + Song Logic
     private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(1, ItemStack.EMPTY);
-    private long tickCount;
+    private int ticksThisSecond;
+    private long tickCount; //Cumulative for iDog lifespan.
     private long recordStartTick;
-    private boolean loopSongs;
-    private boolean alertMe;
-    private boolean hasDisc;
-    private float songVolume;
+    private boolean loopSongs; //TODO NBT DATA
+    private boolean alertMe; //TODO NBT DATA
+    private float songVolume; //TODO NBT DATA
 
     // Eye Effects & Eye Covers
-    private int eyeCover;
-    private int currentBPM;
+    private static final TrackedData<Integer> EYE_COVER = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    private static final TrackedData<Integer> CURRENT_BPM = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.INTEGER);
     private int startTime;
-    private int elapsedTime;
+    private static final TrackedData<Integer> TICKS_PER_BEAT_CUMULATIVE = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.INTEGER); // Ticks inside a beat
+    private static final TrackedData<Float> TICKS_PER_BEAT = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.FLOAT);
+    private static final TrackedData<Integer> ANIMATION_SET = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    private static final TrackedData<Integer> ANIMATION_STEP = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    private static final TrackedData<Integer> ANIMATION_STEP_COUNT = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    private static final TrackedData<Integer> BEAT_CUMULATIVE = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    private static final TrackedData<Integer> EASE_METHOD = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.INTEGER);
+    private static final TrackedData<Float> SPEED_MOD = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.FLOAT);
+    private boolean shouldAnimEaseOut;
+    private boolean forceFreshTick = false;
     //
     private float eyeRedValue;
     private float eyeGreenValue;
     private float eyeBlueValue;
     private float eyeAlphaValue;
-    private Color eyeRGBA = new Color (1F, 1F, 1F, 1F);
+    private Color baseEyeRGBA = new Color (1F, 1F, 1F, 1F);
+    private float fadeDelta;
 
     public iDogEntity(EntityType<? extends TameableEntity> entityType, World world) {
         super(entityType, world);
@@ -128,7 +138,6 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         this.targetSelector.add(6, new UntamedActiveTargetGoal(this, TurtleEntity.class, false, TurtleEntity.BABY_TURTLE_ON_LAND_FILTER));
         this.targetSelector.add(7, new ActiveTargetGoal(this, AbstractSkeletonEntity.class, false));
         this.targetSelector.add(8, new UniversalAngerGoal<>(this, true));
-
     }
 
     public static DefaultAttributeContainer.Builder createiDogAttributes(){
@@ -146,10 +155,21 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     protected void initDataTracker() {
         super.initDataTracker();
 
-        this.dataTracker.startTracking(IS_PLAYING, false);
         this.dataTracker.startTracking(BEGGING, false);
+
+        this.dataTracker.startTracking(IS_PLAYING, false);
         this.dataTracker.startTracking(CURRENT_DISC, "none");
-        this.dataTracker.startTracking(RECORD_END_TICK, 0L);
+        this.dataTracker.startTracking(SONG_END_TICK, 0L);
+        this.dataTracker.startTracking(EYE_COVER, 0);
+        this.dataTracker.startTracking(CURRENT_BPM, 130);
+        this.dataTracker.startTracking(TICKS_PER_BEAT_CUMULATIVE, 0);
+        this.dataTracker.startTracking(TICKS_PER_BEAT, 0F);
+        this.dataTracker.startTracking(ANIMATION_SET, 0);
+        this.dataTracker.startTracking(ANIMATION_STEP, -1);
+        this.dataTracker.startTracking(ANIMATION_STEP_COUNT, 0);
+        this.dataTracker.startTracking(BEAT_CUMULATIVE, 0);
+        this.dataTracker.startTracking(EASE_METHOD, 0);
+        this.dataTracker.startTracking(SPEED_MOD, 1F); // NEVER SET TO 0! BREAKS EVERYTHING!
     }
 
     @Override
@@ -163,22 +183,30 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         super.tick();
         if (this.isAlive()) {
 
+            if (this.isPlayingRecord() && this.songVolume != 0 && !this.isSongFinished()) {
+                this.ticksThisSecond++; //Ticks this second, for visual effects.
+
+                this.songDisplayLogic();
+
+                if (this.isSongFinished()) {
+                    this.stopPlaying();
+                } else if (this.hasSecondPassed()) {
+                    this.ticksThisSecond = 0;
+                }
+            } else {
+                this.setEyeCover(0);
+                this.eyeAlphaValue = 1F;
+            }
+
             if(this.isBegging()) {
-                this.cumulativeTick += 1;
+                this.cumulativeBegTick += 4;
                 this.wasBegging = true;
             } else if(!this.isBegging() && this.wasBegging()) {
-                this.cumulativeTick -= 1;
-                if(this.cumulativeTick <= 0) {this.wasBegging = false; this.cumulativeTick = 0;}
+                this.cumulativeBegTick -= 2;
+                if(this.cumulativeBegTick <= 0) {this.wasBegging = false; this.cumulativeBegTick = 0;}
             }
 
-            /*
-            if(this.isPlayingRecord() && this.songVolume != 0) {
-                songDisplayLogic();
-            } else {
-                setEyeCover(0);
-            }
-
-             */
+            this.tickCount++; //Cumulative ticks to compare with song length.
         }
     }
 
@@ -202,25 +230,195 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         // 9 top left & middle, 10, top right and middle.
         // 11 bottom right & middle, 12, bottom left and middle.
         // 13 top, 14, bottom.  15 top center, 16 bottom center
+        // .....................................................
+        // occupiedAnimTick used for queue.
+        // Each animation needs to chain covers together. Clockwise chain would be 6 occupiedAnimTicks
+        // Subtract one animTick for every beat.
 
 
         //TODO: If music disc is 11 or (or 5 if there is time), do unique logic
         // Alternate from Pure Red to Interpolated Effects based on song sections.
 
-
-        if(this.isSongFinished(this.getDisc())) {
+        if(this.isSongFinished()) { //TODO: Rethink looping logic. Maybe instead of looping inside MovingSongInstance, loop here and send another packet?
             stopPlayingRecord(); //Ends any moving sound instances.
+        } else {
+            int tickBeatCumulative = this.dataTracker.get(TICKS_PER_BEAT_CUMULATIVE) + 1;
+            float ticksPerBeat = this.dataTracker.get(TICKS_PER_BEAT);
+            int animationStep = this.dataTracker.get(ANIMATION_STEP);
+            float speedMod = this.dataTracker.get(SPEED_MOD);
+
+            // Eye alpha logic,
+            // Boolean for easing out, or flashing.
+            // If easing out double the rate of delta, and then reverse it.
+            this.dataTracker.set(TICKS_PER_BEAT_CUMULATIVE, tickBeatCumulative);
+
+            this.fadeDelta = switch(this.dataTracker.get(EASE_METHOD)) {
+                case 0 -> tickBeatCumulative * speedMod / ticksPerBeat;
+                //case 1 -> easeInCubic(tickBeatCumulative * speedMod / ticksPerBeat);
+                //case 2 -> easeOutCubic(tickBeatCumulative * speedMod / ticksPerBeat);
+                //case 3 -> easeInOutCubic(tickBeatCumulative * speedMod / ticksPerBeat); //Disabled for now. Might be bugged.
+                default -> tickBeatCumulative * speedMod / ticksPerBeat;
+            };
+
+            this.eyeAlphaValue = this.fadeDelta;
+
+            // Eye cover logic
+            if (tickBeatCumulative * speedMod >= ticksPerBeat) { //An entire beat is finished!
+                this.dataTracker.set(BEAT_CUMULATIVE, this.dataTracker.get(BEAT_CUMULATIVE) + 1); // Beat Cumulative
+
+                if (animationStep < 0) {
+                    // Animation finished. Get next
+
+                    if(!getWorld().isClient) {
+                        this.setNextAnimSetNumber(); //Chooses the next animation set
+                        this.dataTracker.set(ANIMATION_STEP, getFromAnimSet(this.dataTracker.get(ANIMATION_SET), -1)); //Gets the steps
+                        this.dataTracker.set(ANIMATION_STEP_COUNT, this.dataTracker.get(ANIMATION_STEP) + 1);//Sets the step count
+                        this.setEaseMethod();
+                    }
+                } else {
+                    this.setEyeCover(getFromAnimSet(this.dataTracker.get(ANIMATION_SET), this.dataTracker.get(ANIMATION_STEP)));
+
+                    if(!getWorld().isClient) {
+                        this.dataTracker.set(ANIMATION_STEP, animationStep -1);
+                        System.out.println("Anim set is: " + this.dataTracker.get(ANIMATION_SET));
+                        System.out.println("Anim step is: " + this.dataTracker.get(ANIMATION_STEP) + " of " + this.dataTracker.get(ANIMATION_STEP_COUNT));
+                        System.out.println("Eye cover is: " + this.dataTracker.get(EYE_COVER));
+                    }
+                }
+                this.dataTracker.set(TICKS_PER_BEAT_CUMULATIVE, 0); //SET THIS TO ZERO EVERY BEAT YOU IDIOT!
+            }
         }
     }
 
-    public Color getEyeRGBA() {
-        return this.eyeRGBA;
+    private void setEaseMethod() {
+        this.dataTracker.set(EASE_METHOD, iDogEasing.methodAmount);
+
+        float speedMod = switch(this.random.nextInt(2)) {
+          case 0 -> 1F;
+          case 1 -> 0.5F;
+          case 2 -> 0.25F;
+          default -> 1F;
+        };
+        this.dataTracker.set(SPEED_MOD, speedMod);
     }
 
-    private void setEyeRGBA(String disc) {
+    //Bounds are listed below. Denotes the animation set. Zero included
+    private void setNextAnimSetNumber() {
+        this.dataTracker.set(ANIMATION_SET, this.random.nextInt(16));
+    }
+
+    //Returns the EyeCover for iDogLidFeatureRenderer if not initializing.
+    // Else, returns the amount of steps.
+    private int getFromAnimSet(int set, int step) {
+
+        /** Arrays of animation sets.
+         *  Takes the current set and step, and gives the EyeCover from the array set.
+         *  Ergo:
+         *  Clockwork pulse would be:   3 > 4 > 5 > 6 > 7 > 8| Eyecover textures
+         *  Invert Clockwork would be: -3 >-4 >-5 >-6 >-7 >-8| [Corresponding Negatives]
+         *  From steps:                 5 > 4 > 3 > 2 > 1 > 0| currentAnimStep
+         *  If animStep less than 0, #songDisplayLogic() knows to select next animSet.
+         */
+
+        /**
+         * Animation sets.
+         */
+        //0 No Eyecover [1 step]
+        int noneAnim = 0;
+        //1 Animset Clockwise [6 step]
+        int[] clockwiseAnim = {3, 4, 5, 6, 7, 8};
+        //2 Animset Anti-Clockwise [6 step]
+        int[] antiClockwiseAnim = {8, 7, 6, 5, 4, 3};
+        //3 Animset Inverted Clockwise [6 step]
+        int[] invertClockwiseAnim = {-3, -4, -5, -6, -7, -8};
+        //4 Animset Inverted Anti-Clockwise [6 step]
+        int[] invertAntiClockwiseAnim = {-8, -7, -6, -5, -4, -3};
+        //5 Animset Stripe Down to Up [6 step]
+        int[] stripeDownUpAnim = {-4, 40, 407, -7, 70, 407};
+        //6 Animset Stripe Up to Down [6 step]
+        int[] stripeUpDownAnim = {-7, 70, 407, -4, 40, 407};
+        //7 Animset Stripe Down to Up Full [6 step]
+        int[] stripeDownUpFullAnim = {407, 40, -4, -7, 70, 407};
+        //8 Animset Stripe Up to Down Full [6 step]
+        int[] stripeUpDownFullAnim = {407, 70, -7, -4, 40, 407};
+        //9 Clockwise Inverted Triangles [6 step]
+        int[] invertClockwiseTrianglesAnim = {338, 337, 336, 335, 334, 333};
+        //10 Clockwise Inverted Triangles [6 step]
+        int[] invertAntiClockwiseTrianglesAnim = {333, 334, 335, 336, 337, 338};
+        //11 Clockwise Triangles [6 step]
+        int[] clockwiseTrianglesAnim = {-338, -337, -336, -335, -334, -333};
+        //12 Clockwise Triangles [6 step]
+        int[] antiClockwiseTrianglesAnim = {-333, -334, -335, -336, -337, -338};
+        //13 Alternating Triangles Clockwise [6]
+        int[] alternateTrianglesAnim = {-334, -337, -333, -336, -338, -335};
+        //14 Alternating Triangles Clockwise [6]
+        int[] alternateTrianglesReverseAnim = {-335, -338, -336, -333, -337, -334};
+        //15 Side Snakes [11]
+        int[] sideSnakesAnim = {-3, -8, -1, -5, -6, 0, -6, -5, -1, -8, -3};
+        //16 Side Snakes [11]
+        int[] sideSnakesInvertedAnim = {3, 8, 1, 5, 6, 0, 6, 5, 1, 8, 3};
+
+        if(step <= -1) {
+            return switch(set) { // Initialize currentAnimStep
+                case 0 -> 3;
+                case 1 -> clockwiseAnim.length-1;
+                case 2 -> antiClockwiseAnim.length-1;
+                case 3 -> invertClockwiseAnim.length-1;
+                case 4 -> invertAntiClockwiseAnim.length-1;
+                case 5 -> stripeDownUpAnim.length-1;
+                case 6 -> stripeUpDownAnim.length-1;
+                case 7 -> stripeDownUpFullAnim.length-1;
+                case 8 -> stripeUpDownFullAnim.length-1;
+                case 9 -> invertClockwiseTrianglesAnim.length-1;
+                case 10 -> invertAntiClockwiseTrianglesAnim.length-1;
+                case 11 -> clockwiseTrianglesAnim.length-1;
+                case 12 -> antiClockwiseTrianglesAnim.length-1;
+                case 13 -> alternateTrianglesAnim.length-1;
+                case 14 -> alternateTrianglesReverseAnim.length-1;
+                case 15 -> sideSnakesAnim.length-1;
+                case 16 -> sideSnakesInvertedAnim.length-1;
+                default -> 1;
+            };
+        } else { // Return EyeCover
+            return switch (set) {
+                case 0 -> noneAnim;
+                case 1 -> clockwiseAnim[step];
+                case 2 -> antiClockwiseAnim[step];
+                case 3 -> invertClockwiseAnim[step];
+                case 4 -> invertAntiClockwiseAnim[step];
+                case 5 -> stripeDownUpAnim[step];
+                case 6 -> stripeUpDownAnim[step];
+                case 7 -> stripeDownUpFullAnim[step];
+                case 8 -> stripeUpDownFullAnim[step];
+                case 9 -> invertClockwiseTrianglesAnim[step];
+                case 10 -> invertAntiClockwiseTrianglesAnim[step];
+                case 11 -> clockwiseTrianglesAnim[step];
+                case 12 -> antiClockwiseTrianglesAnim[step];
+                case 13 -> alternateTrianglesAnim[step];
+                case 14 -> alternateTrianglesReverseAnim[step];
+                case 15 -> sideSnakesAnim[step];
+                case 16 -> sideSnakesInvertedAnim[step];
+                default -> noneAnim;
+            };
+        }
+    }
+
+    public float getEyeRedValue() {
+        return this.eyeRedValue;
+    }
+    public float getEyeGreenValue() {
+        return this.eyeGreenValue;
+    }
+    public float getEyeBlueValue() {
+        return this.eyeBlueValue;
+    }
+    public float getEyeAlpha() {
+        return this.eyeAlphaValue;
+    }
+    private void setEyeRGBAFromDisc(String disc) {
 
         //TODO: Get RGB values for subsequent discs.
-        this.eyeRGBA = switch (disc) {
+        this.baseEyeRGBA = switch (disc) {
             case "none" -> new Color (1F, 1F, 1F, 1F);
             case "music_disc_5" -> new Color (1F, 1F, 1F, 1F);
             case "music_disc_11" -> new Color (1F, 1F, 1F, 1F);
@@ -240,23 +438,32 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
             case "music_disc_ward" -> new Color (1F, 1F, 1F, 1F);
             default -> new Color (1F, 1F, 1F, 1F);
         };
+
+        this.eyeRedValue = this.baseEyeRGBA.getRed();
+        this.eyeGreenValue = this.baseEyeRGBA.getGreen();
+        this.eyeBlueValue = this.baseEyeRGBA.getBlue();
+        this.eyeAlphaValue = this.baseEyeRGBA.getAlpha();
     }
 
     public int getEyeCover() {
-        return this.eyeCover;
+        return this.dataTracker.get(EYE_COVER);
     }
 
     private void setEyeCover(int passedInt) {
-        this.eyeCover = passedInt;
+        this.dataTracker.set(EYE_COVER, passedInt);
+    }
+
+    private boolean hasSecondPassed() {
+        return this.ticksThisSecond >= 20;
     }
 
     public int getCurrentBPM() {
-        return this.currentBPM;
+        return this.dataTracker.get(CURRENT_BPM);
     }
 
     private void setCurrentBPM(String disc) {
 
-        this.currentBPM = switch (disc) {
+        int currentBPM = switch (disc) {
             case "none" -> 130;
             case "music_disc_5" -> 74;
             case "music_disc_11" -> 79;
@@ -276,6 +483,8 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
             case "music_disc_ward" -> 107;
             default -> 130;
         };
+
+        this.dataTracker.set(CURRENT_BPM, currentBPM);
     }
 
     @Override
@@ -336,12 +545,12 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     }
 
     public int getBegDelta() {
-        return MathHelper.clamp(this.cumulativeTick, 0, 60);
+        return MathHelper.clamp(this.cumulativeBegTick, 0, 60);
     }
 
     public int getInverseBegDelta() {
-        this.cumulativeTick -= 1;
-        return MathHelper.clamp(this.cumulativeTick, 0, 60);
+        this.cumulativeBegTick -= 1;
+        return MathHelper.clamp(this.cumulativeBegTick, 0, 60);
     }
 
     public boolean wasBegging() {
@@ -402,7 +611,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
 
         if (nbt.contains("CurrentDisc")) {
             String disc = nbt.getString("CurrentDisc");
-            this.setCurrentDisc(disc); // <---- force sync to clients
+            this.setCurrentDisc(disc); // <- Should force dataTracker sync to all clients
         }
     }
 
@@ -427,11 +636,11 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         return this.dataTracker.get(CURRENT_DISC);
     }
 
-    public void setCurrentDisc(String discName) {
+    private void setCurrentDisc(String discName) {
         this.dataTracker.set(CURRENT_DISC, discName);
     }
 
-    public void setLoopBool(boolean passedBool) {
+    private void setLoopBool(boolean passedBool) {
         this.loopSongs = passedBool;
     }
 
@@ -460,50 +669,111 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         return stack.isIn(ItemTags.MUSIC_DISCS) && this.getStack(slot).isEmpty();
     }
 
-    @VisibleForTesting
+    /**
+     * An important lesson was learned from this function.
+     * This code will be called on the server and client.
+     * That means everything is done twice.
+     *
+     * DataTracker is important because it forces client and server synchronization.
+     */
     public void startPlaying(MusicDiscItem musicDisc) {
-        this.dataTracker.set(IS_PLAYING, true);
-        this.recordStartTick = this.tickCount;
-        setSongEndTick(musicDisc); // Tells dataTracker the end tick.
 
-        playSound(SoundEvents.ENTITY_ITEM_FRAME_ROTATE_ITEM, 2.0F, 0.25F);
-        playSound(SoundEvents.ITEM_BOTTLE_FILL_DRAGONBREATH, 2.0F, 0.5F);
+        if(!this.forceFreshTick) {
+            this.forceFreshTick = true;
+            this.recordStartTick = this.tickCount;
 
-        setSongVolume(100);
-        setLoopBool(true);
+            if(!this.getWorld().isClient) {
+                this.dataTracker.set(IS_PLAYING, true);
+                this.setSongEndTick(musicDisc); // Tells dataTracker the end tick.
+                this.setCurrentBPM(musicDisc.toString());
+                this.setTicksPerBeat();
+                this.setEaseMethod();
 
-        if(!this.getWorld().isClient)
-        {
+                System.out.println("Song End Tick is: " + this.dataTracker.get(SONG_END_TICK));
 
-            PacketByteBuf buf = PacketByteBufs.create();
-            buf.writeInt(this.getId());
-            buf.writeIdentifier(Registries.ITEM.getId(musicDisc));
-            ServerWorld serverWorld = (ServerWorld) this.getWorld();
-            serverWorld.getPlayers().forEach(player -> {
-                ServerPlayNetworking.send(player, iDogMod.PLAY_IDOG_MUSIC, buf);
-                System.out.println("Sound packet sent to Player: " + player + " from entity: " + this.getId() + " with disc ID of: " + Registries.ITEM.getId(musicDisc));
-            });
+                //Set first animation
+                this.setNextAnimSetNumber();
+                //Set animationStep
+                this.dataTracker.set(ANIMATION_STEP, getFromAnimSet(this.dataTracker.get(ANIMATION_SET), -1));
+                this.dataTracker.set(ANIMATION_STEP_COUNT, this.dataTracker.get(ANIMATION_STEP) + 1); //Set Step Count
+
+                System.out.println("Anim set is: " + this.dataTracker.get(ANIMATION_SET));
+                System.out.println("Anim step is: " + this.dataTracker.get(ANIMATION_STEP) + " of " + this.dataTracker.get(ANIMATION_STEP_COUNT));
+                System.out.println("Eye cover is: " + this.dataTracker.get(EYE_COVER));
+            }
+
+            this.setSongVolume(100);
+            this.setLoopBool(false);
+
+            playSound(SoundEvents.ENTITY_ITEM_FRAME_ROTATE_ITEM, 2.0F, 0.25F);
+            playSound(SoundEvents.ITEM_BOTTLE_FILL_DRAGONBREATH, 2.0F, 0.5F);
+
+            /**
+             * Sending {@link iDogMovingSoundInstance} Packet information to server
+             */
+            if (!this.getWorld().isClient) {
+
+
+
+
+                PacketByteBuf buf = PacketByteBufs.create();
+                buf.writeInt(this.getId());
+                buf.writeIdentifier(Registries.ITEM.getId(musicDisc));
+                ServerWorld serverWorld = (ServerWorld) this.getWorld();
+                serverWorld.getPlayers().forEach(player -> {
+                    ServerPlayNetworking.send(player, iDogMod.PLAY_IDOG_MUSIC, buf);
+                    System.out.println("Sound packet sent to Player: " + player + " from entity: " + this.getId() + " with disc ID of: " + Registries.ITEM.getId(musicDisc));
+                });
+            }
+            this.currentSong = musicDisc.getSound();
+            this.markDirty();
+        } else {
+            System.out.println("Tried to run song twice! Not on my watch!");
         }
-        currentSong = musicDisc.getSound();
-        this.markDirty();
     }
 
     private void stopPlaying() {
-        this.dataTracker.set(IS_PLAYING, false);
-        playSound(SoundEvents.ENTITY_ITEM_FRAME_REMOVE_ITEM, 2.0F, 2.0F);
+        this.forceFreshTick = false; // If false, that means fresh tick is not enforced.
         this.markDirty();
+
+        this.dataTracker.set(IS_PLAYING, false);
+        this.dataTracker.set(CURRENT_DISC, "none");
+        this.dataTracker.set(SONG_END_TICK, 0L);
+        this.dataTracker.set(EYE_COVER, 0);
+        this.dataTracker.set(CURRENT_BPM, 130);
+        this.dataTracker.set(TICKS_PER_BEAT_CUMULATIVE, 0);
+        this.dataTracker.set(TICKS_PER_BEAT, 0F);
+        this.dataTracker.set(ANIMATION_SET, 0);
+        this.dataTracker.set(ANIMATION_STEP, -1);
+        this.dataTracker.set(ANIMATION_STEP_COUNT, 0);
+        this.dataTracker.set(BEAT_CUMULATIVE, 0);
+        this.dataTracker.set(SPEED_MOD, 1F);
     }
 
-    private boolean isSongFinished(MusicDiscItem musicDisc) {
-        return this.tickCount >= this.recordStartTick + musicDisc.getSongLengthInTicks() + 20L;
+    private boolean isSongFinished() {
+        if(this.tickCount >= this.dataTracker.get(SONG_END_TICK)) {
+            if(this.loopSongs) {
+                this.recordStartTick = this.tickCount;
+                setSongEndTick(getDiscAsItem());
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
     }
 
     private void setSongEndTick(MusicDiscItem musicDisc) {
-        this.dataTracker.set(RECORD_END_TICK, this.recordStartTick + musicDisc.getSongLengthInTicks() + 20L);
+        this.dataTracker.set(SONG_END_TICK, this.recordStartTick + musicDisc.getSongLengthInTicks() + 20L);
     }
 
     public long getSongEndTick(MusicDiscItem musicDisc) {
-        return this.dataTracker.get(RECORD_END_TICK);
+        return this.dataTracker.get(SONG_END_TICK);
+    }
+
+    private void setTicksPerBeat() {
+        this.dataTracker.set(TICKS_PER_BEAT, 60F/getCurrentBPM() * 20F);
     }
 
     @Override
@@ -516,24 +786,34 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         return this.inventory.get(slot);
     }
 
-    public MusicDiscItem getDisc() {
-        return ((MusicDiscItem) this.getStack().getItem()); //TODO: This is crashing! Can't cast AIR to disc!
-    }
+    public MusicDiscItem getDiscAsItem() {
+        Item item = this.getStack().getItem();
 
-    @Override
-    public void setStack(int slot, ItemStack stack) {
-        if (stack.isIn(ItemTags.MUSIC_DISCS) && this.getWorld() != null) {
-            this.inventory.set(slot, stack);
-            setCurrentDisc(stack.getItem().toString());
-            //System.out.println("iDog is now playing: " + getCurrentDisc());
-            this.startPlaying((MusicDiscItem) stack.getItem());
+        if(item instanceof MusicDiscItem) {
+            return ((MusicDiscItem) item);
+        } else {
+            System.out.println("getDiscAsItem failed! Scream!");
+            this.playSound(SoundEvents.ENTITY_GHAST_HURT, 5.0F, 2.0F);
+            return ((MusicDiscItem) Items.MUSIC_DISC_11);
         }
     }
 
     @Override
+    public void setStack(int slot, ItemStack stack) {
+        if (stack.isIn(ItemTags.MUSIC_DISCS)) {
+            this.inventory.set(slot, stack);
+            setCurrentDisc(stack.getItem().toString());
+            //System.out.println("iDog is now playing: " + getCurrentDisc());
+            this.startPlaying((MusicDiscItem) stack.getItem());
+            this.setSongEndTick((MusicDiscItem) stack.getItem());
+        }
+    }
+
+    @Override //Todo: StopPlaying, removeStack and it's related ilk seem misordered. Investigate.
     public ItemStack removeStack(int slot, int amount) {
-        dropRecord();
+        this.dropRecord();
         ItemStack itemStack = (ItemStack) Objects.requireNonNullElse(this.inventory.get(slot), ItemStack.EMPTY);
+        playSound(SoundEvents.ENTITY_ITEM_FRAME_REMOVE_ITEM, 2.0F, 2.0F);
         this.inventory.set(slot, ItemStack.EMPTY);
         if (!itemStack.isEmpty()) {
             this.setCurrentDisc("none");
@@ -778,9 +1058,5 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         }
 
         this.limbAnimator.updateLimbs(f, 0.2F);
-    }
-
-    public float getBegAnimationProgress(float tickDelta) {
-        return MathHelper.lerp(tickDelta, this.lastBegAnimationProgress, this.begAnimationProgress) * 0.15F * (float) Math.PI;
     }
 }
