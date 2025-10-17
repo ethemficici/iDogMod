@@ -11,7 +11,7 @@ import net.minecraft.util.math.MathHelper;
 public interface iDogEasing {
 
     // 0 means no easing, 1 = easeInCubic, 2 = easeOutCubic
-    public final int methodAmount = 2; //Used in selecting random in iDogEntity.
+    public final int methodAmount = 3; //Used in selecting random in iDogEntity.
 
     // 1
     default float easeInCubic(float delta) {

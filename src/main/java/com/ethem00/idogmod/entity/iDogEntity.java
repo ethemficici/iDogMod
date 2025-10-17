@@ -4,11 +4,9 @@ import com.ethem00.idogmod.entity.ai.goal.iDogAttackWithOwnerGoal;
 import com.ethem00.idogmod.entity.ai.goal.iDogBegGoal;
 import com.ethem00.idogmod.entity.client.render.entity.animation.iDogEasing;
 import com.ethem00.idogmod.iDogMod;
-import com.google.common.annotations.VisibleForTesting;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.BlockState;
-import net.minecraft.client.util.telemetry.WorldUnloadedEvent;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
@@ -46,13 +44,11 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.intprovider.UniformIntProvider;
 import net.minecraft.world.EntityView;
 import net.minecraft.world.World;
-import net.minecraft.world.event.GameEvent;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.Objects;
-import java.util.Random;
 import java.util.UUID;
 import java.util.function.Predicate;
 
@@ -69,7 +65,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     private int angerTime;
     @Nullable
     private UUID angryAt;
-    public static final AnimationState idleAnimationState = new AnimationState();
+    //public static final AnimationState idleAnimationState = new AnimationState();
     public static final Predicate<LivingEntity> FOLLOW_TAMED_PREDICATE = entity -> {
         EntityType<?> entityType = entity.getType();
         return entityType == EntityType.SHEEP || entityType == EntityType.RABBIT || entityType == EntityType.FOX;
@@ -87,7 +83,6 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     // Eye Effects & Eye Covers
     private static final TrackedData<Integer> EYE_COVER = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.INTEGER);
     private static final TrackedData<Integer> CURRENT_BPM = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.INTEGER);
-    private int startTime;
     private static final TrackedData<Integer> TICKS_PER_BEAT_CUMULATIVE = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.INTEGER); // Ticks inside a beat
     private static final TrackedData<Float> TICKS_PER_BEAT = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.FLOAT);
     private static final TrackedData<Integer> ANIMATION_SET = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.INTEGER);
@@ -104,7 +99,6 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     private float eyeBlueValue;
     private float eyeAlphaValue;
     private Color baseEyeRGBA = new Color (1F, 1F, 1F, 1F);
-    private float fadeDelta;
 
     public iDogEntity(EntityType<? extends TameableEntity> entityType, World world) {
         super(entityType, world);
@@ -252,7 +246,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
             // If easing out double the rate of delta, and then reverse it.
             this.dataTracker.set(TICKS_PER_BEAT_CUMULATIVE, tickBeatCumulative);
 
-            this.fadeDelta = switch(this.dataTracker.get(EASE_METHOD)) {
+            float fadeDelta = switch(this.dataTracker.get(EASE_METHOD)) {
                 case 0 -> tickBeatCumulative * speedMod / ticksPerBeat;
                 //case 1 -> easeInCubic(tickBeatCumulative * speedMod / ticksPerBeat);
                 //case 2 -> easeOutCubic(tickBeatCumulative * speedMod / ticksPerBeat);
@@ -260,7 +254,9 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
                 default -> tickBeatCumulative * speedMod / ticksPerBeat;
             };
 
-            this.eyeAlphaValue = this.fadeDelta;
+            this.eyeAlphaValue = fadeDelta;
+
+            //TODO: FIX THE WEIRD BUG WITH CONSTANT -1 STEPS!
 
             // Eye cover logic
             if (tickBeatCumulative * speedMod >= ticksPerBeat) { //An entire beat is finished!
@@ -293,18 +289,20 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     private void setEaseMethod() {
         this.dataTracker.set(EASE_METHOD, iDogEasing.methodAmount);
 
-        float speedMod = switch(this.random.nextInt(2)) {
+        float speedMod = switch(this.random.nextInt(3)) {
           case 0 -> 1F;
           case 1 -> 0.5F;
           case 2 -> 0.25F;
-          default -> 1F;
+          case 3 -> {
+                if(this.random.nextInt(4) == 0) {yield 0.125F;} else {yield 0.5F;}}
+            default -> 1F;
         };
         this.dataTracker.set(SPEED_MOD, speedMod);
     }
 
     //Bounds are listed below. Denotes the animation set. Zero included
     private void setNextAnimSetNumber() {
-        this.dataTracker.set(ANIMATION_SET, this.random.nextInt(16));
+        this.dataTracker.set(ANIMATION_SET, this.random.nextInt(18));
     }
 
     //Returns the EyeCover for iDogLidFeatureRenderer if not initializing.
@@ -320,9 +318,8 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
          *  If animStep less than 0, #songDisplayLogic() knows to select next animSet.
          */
 
-        /**
-         * Animation sets.
-         */
+        //Animation sets.
+
         //0 No Eyecover [1 step]
         int noneAnim = 0;
         //1 Animset Clockwise [6 step]
@@ -357,6 +354,10 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         int[] sideSnakesAnim = {-3, -8, -1, -5, -6, 0, -6, -5, -1, -8, -3};
         //16 Side Snakes [11]
         int[] sideSnakesInvertedAnim = {3, 8, 1, 5, 6, 0, 6, 5, 1, 8, 3};
+        //17 In and Out [8]
+        int[] inAndOutAnim = {1, -1, 1, -1, 1, 1, -1, -1};
+        //18 Stripes In and Out [12]
+        int [] stripesInAndOutAnim = {407, -407, 407, -407, 407, 1, 407, 1, -407, -2, -407, -2};
 
         if(step <= -1) {
             return switch(set) { // Initialize currentAnimStep
@@ -377,6 +378,8 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
                 case 14 -> alternateTrianglesReverseAnim.length-1;
                 case 15 -> sideSnakesAnim.length-1;
                 case 16 -> sideSnakesInvertedAnim.length-1;
+                case 17 -> inAndOutAnim.length-1;
+                case 18 -> stripesInAndOutAnim.length-1;
                 default -> 1;
             };
         } else { // Return EyeCover
@@ -398,6 +401,8 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
                 case 14 -> alternateTrianglesReverseAnim[step];
                 case 15 -> sideSnakesAnim[step];
                 case 16 -> sideSnakesInvertedAnim[step];
+                case 17 -> inAndOutAnim[step];
+                case 18 -> stripesInAndOutAnim[step];
                 default -> noneAnim;
             };
         }
@@ -529,14 +534,6 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         }
 
         this.getAttributeInstance(EntityAttributes.GENERIC_ATTACK_DAMAGE).setBaseValue(5.0);
-    }
-
-    public float getTailAngle() {
-        if (this.hasAngerTime()) {
-            return 1.5393804F;
-        } else {
-            return this.isTamed() ? (0.55F - (this.getMaxHealth() - this.getHealth()) * 0.02F) * (float) Math.PI : (float) (Math.PI / 5);
-        }
     }
 
     @Override
@@ -673,9 +670,12 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
      * An important lesson was learned from this function.
      * This code will be called on the server and client.
      * That means everything is done twice.
-     *
+     *-----------------------------------------------------
      * DataTracker is important because it forces client and server synchronization.
+     * If you have weird crashes, don't forget to check what the DataTracker is doing!
+     * ... And more importantly, NOT doing!
      */
+
     public void startPlaying(MusicDiscItem musicDisc) {
 
         if(!this.forceFreshTick) {
@@ -708,9 +708,8 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
             playSound(SoundEvents.ENTITY_ITEM_FRAME_ROTATE_ITEM, 2.0F, 0.25F);
             playSound(SoundEvents.ITEM_BOTTLE_FILL_DRAGONBREATH, 2.0F, 0.5F);
 
-            /**
-             * Sending {@link iDogMovingSoundInstance} Packet information to server
-             */
+            //Sending {@link iDogMovingSoundInstance} Packet information to server
+
             if (!this.getWorld().isClient) {
 
 
@@ -768,7 +767,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         this.dataTracker.set(SONG_END_TICK, this.recordStartTick + musicDisc.getSongLengthInTicks() + 20L);
     }
 
-    public long getSongEndTick(MusicDiscItem musicDisc) {
+    public long getSongEndTick() {
         return this.dataTracker.get(SONG_END_TICK);
     }
 
@@ -928,7 +927,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
 
                 if (itemStack.isIn(ItemTags.MUSIC_DISCS)) {
 
-                    if (getCurrentDisc() != "none") {
+                    if (!getCurrentDisc().equals("none")) {
                         removeStack();
                     } else {
                         setStack(0, itemStack);
@@ -1027,8 +1026,9 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
 
     //Mob Alert Sounds
     //Replace with custom sound events
-    protected void playAlertSound(BlockPos pos, BlockState state) {
+    protected void playAlertSound() {
         this.playSound(SoundEvents.ITEM_FIRECHARGE_USE, 1F, 1.0F);
+        //TODO ADD CUSTOM ALERT SOUNDS AND IDOG CONTROLLER
     }
 
     @Override

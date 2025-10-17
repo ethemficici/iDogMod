@@ -73,6 +73,8 @@ public class iDogLidFeatureRenderer<T extends iDogEntity, M extends iDogEntityMo
     private static final Identifier COVER_INVERTED_TRI_RIGHT = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_right.png");
     private static final Identifier COVER_INVERTED_TRI_RIGHT_UP = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_right_up.png");
 
+    private static final Identifier COVER_407_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_407_inverted.png");
+
 
     public iDogLidFeatureRenderer(FeatureRendererContext<T, M> featureRendererContext) {
         super(featureRendererContext);
@@ -104,17 +106,18 @@ public class iDogLidFeatureRenderer<T extends iDogEntity, M extends iDogEntityMo
             case -336 -> COVER_INVERTED_TRI_RIGHT;
             case -337 -> COVER_INVERTED_TRI_RIGHT_DOWN;
             case -338 -> COVER_INVERTED_TRI_LEFT_DOWN;
+            case -407 -> COVER_407_INVERTED; // Stripe middle closed
             case -8 -> COVER_8_INVERTED;
             case -7 -> COVER_7_INVERTED;
             case -6 -> COVER_6_INVERTED;
             case -5 -> COVER_5_INVERTED;
             case -4 -> COVER_4_INVERTED;
             case -3 -> COVER_3_INVERTED;
-            case -2 -> COVER_INVERTED_CENTER;
+            case -2 -> COVER_NONE;
             case -1 -> COVER_INVERTED_CENTER;
             case 0 -> COVER_NONE;
             case 1 -> COVER_CENTER;
-            case 2 -> COVER_INVERTED_CENTER;
+            case 2 -> COVER_ALL;
             case 3 -> COVER_3;
             case 4 -> COVER_4;
             case 5 -> COVER_5;
@@ -127,7 +130,7 @@ public class iDogLidFeatureRenderer<T extends iDogEntity, M extends iDogEntityMo
             case 16 -> COVER_BOTTOM_CENTER;
             case 40 -> COVER_40;
             case 70 -> COVER_70;
-            case 407 -> COVER_407;
+            case 407 -> COVER_407; //Stripe middle open
             case 333 -> COVER_TRI_LEFT;
             case 334 -> COVER_TRI_LEFT_UP;
             case 335 -> COVER_TRI_RIGHT_UP;

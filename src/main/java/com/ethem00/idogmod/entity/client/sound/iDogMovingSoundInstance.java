@@ -32,6 +32,7 @@ public class iDogMovingSoundInstance extends MovingSoundInstance {
         this.y = iDog.getY();
         this.z = iDog.getZ();
 
+        //TODO: INSTANT STOP IS HAPPENING AGAIN! FIGURE OUT WHY! Not clearing songEnd data?
 
         //Todo: Ping original entity when SoundInstance is completed..? Could help with eye animation desync/pause desync...
         // Currently if the iDog teleports, this audio is finished due to unload and the player has to manually reset the song.
