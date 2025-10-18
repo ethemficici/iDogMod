@@ -58,6 +58,7 @@ public class iDogLidFeatureRenderer<T extends iDogEntity, M extends iDogEntityMo
     private static final Identifier COVER_40 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_40.png");
     private static final Identifier COVER_407 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_407.png");
     private static final Identifier COVER_70 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_70.png");
+    private static final Identifier COVER_407_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_407_inverted.png");
 
     private static final Identifier COVER_TRI_LEFT_DOWN = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_left_down.png");
     private static final Identifier COVER_TRI_LEFT = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_left.png");
@@ -73,7 +74,18 @@ public class iDogLidFeatureRenderer<T extends iDogEntity, M extends iDogEntityMo
     private static final Identifier COVER_INVERTED_TRI_RIGHT = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_right.png");
     private static final Identifier COVER_INVERTED_TRI_RIGHT_UP = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_right_up.png");
 
-    private static final Identifier COVER_407_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_407_inverted.png");
+    private static final Identifier COVER_TWIST1 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_1.png");
+    private static final Identifier COVER_TWIST2 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_2.png");
+    private static final Identifier COVER_TWIST3 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_3.png");
+    private static final Identifier COVER_TWIST1_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_1_inverted.png");
+    private static final Identifier COVER_TWIST2_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_2_inverted.png");
+    private static final Identifier COVER_TWIST3_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_3_inverted.png");
+
+    //Threes
+    private static final Identifier COVER_345 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_345.png");
+    private static final Identifier COVER_345_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_345_inverted.png");
+    private static final Identifier COVER_678 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_678.png");
+    private static final Identifier COVER_678_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_678_inverted.png");
 
 
     public iDogLidFeatureRenderer(FeatureRendererContext<T, M> featureRendererContext) {
@@ -94,12 +106,11 @@ public class iDogLidFeatureRenderer<T extends iDogEntity, M extends iDogEntityMo
      *      8   *   6
      *      *   7   *
      */
-
-    //TODO: REWORK? All of this can be achieved using individual "Eye Lids"...
-    // Does each lid need a feature renderer?
     private Identifier getCoverTexture(int cover) {
         return switch (cover) {
 
+            case -678 -> COVER_678_INVERTED;
+            case -345 -> COVER_345_INVERTED;
             case -333 -> COVER_INVERTED_TRI_LEFT;
             case -334 -> COVER_INVERTED_TRI_LEFT_UP;
             case -335 -> COVER_INVERTED_TRI_RIGHT_UP;
@@ -107,6 +118,12 @@ public class iDogLidFeatureRenderer<T extends iDogEntity, M extends iDogEntityMo
             case -337 -> COVER_INVERTED_TRI_RIGHT_DOWN;
             case -338 -> COVER_INVERTED_TRI_LEFT_DOWN;
             case -407 -> COVER_407_INVERTED; // Stripe middle closed
+            case -74 -> COVER_TWIST1_INVERTED; //Also cover X inverted
+            case -85 -> COVER_TWIST2_INVERTED;
+            case -36 -> COVER_TWIST3_INVERTED;
+            case -47 -> COVER_TWIST1_INVERTED; //Also cover X inverted
+            case -58 -> COVER_TWIST2_INVERTED;
+            case -63 -> COVER_TWIST3_INVERTED;
             case -8 -> COVER_8_INVERTED;
             case -7 -> COVER_7_INVERTED;
             case -6 -> COVER_6_INVERTED;
@@ -129,6 +146,12 @@ public class iDogLidFeatureRenderer<T extends iDogEntity, M extends iDogEntityMo
             case 15 -> COVER_TOP_CENTER;
             case 16 -> COVER_BOTTOM_CENTER;
             case 40 -> COVER_40;
+            case 74 -> COVER_TWIST1; //Also cover X
+            case 85 -> COVER_TWIST2;
+            case 36 -> COVER_TWIST3;
+            case 47 -> COVER_TWIST1; //Also cover X
+            case 58 -> COVER_TWIST2;
+            case 63 -> COVER_TWIST3;
             case 70 -> COVER_70;
             case 407 -> COVER_407; //Stripe middle open
             case 333 -> COVER_TRI_LEFT;
@@ -137,6 +160,8 @@ public class iDogLidFeatureRenderer<T extends iDogEntity, M extends iDogEntityMo
             case 336 -> COVER_TRI_RIGHT;
             case 337 -> COVER_TRI_RIGHT_DOWN;
             case 338 -> COVER_TRI_LEFT_DOWN;
+            case 345 -> COVER_345;
+            case 678 -> COVER_678;
             default -> COVER_MISSING_NUMBER;
         };
     }
