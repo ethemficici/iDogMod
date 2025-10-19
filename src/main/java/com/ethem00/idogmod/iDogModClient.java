@@ -2,15 +2,18 @@ package com.ethem00.idogmod;
 
 import com.ethem00.idogmod.entity.ModEntities;
 import com.ethem00.idogmod.entity.client.ModModelLayers;
+import com.ethem00.idogmod.entity.client.gui.screen.ingame.iDogScreen;
 import com.ethem00.idogmod.entity.client.iDogEntityModel;
 import com.ethem00.idogmod.entity.client.iDogRenderer;
 import com.ethem00.idogmod.entity.client.sound.iDogMovingSoundInstance;
 import com.ethem00.idogmod.entity.iDogEntity;
+import com.ethem00.idogmod.screen.ModScreenHandlers;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
@@ -26,6 +29,7 @@ public class iDogModClient implements ClientModInitializer {
 
         EntityRendererRegistry.register(ModEntities.IDOG, iDogRenderer::new);
         EntityModelLayerRegistry.registerModelLayer(ModModelLayers.IDOG, iDogEntityModel::getTexturedModelData);
+        HandledScreens.register(ModScreenHandlers.IDOG_SCREEN_HANDLER, iDogScreen::new);
 
         ClientPlayNetworking.registerGlobalReceiver(iDogMod.PLAY_IDOG_MUSIC,
                 (client, handler, buf, responseSender)-> {

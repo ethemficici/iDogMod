@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.ethem00.idogmod.entity.ModEntities.registerModEntities;
+import static com.ethem00.idogmod.screen.ModScreenHandlers.registerScreenHandlers;
 
 public class iDogMod implements ModInitializer {
 	public static final String MOD_ID = "idogmod";
@@ -29,6 +30,7 @@ public class iDogMod implements ModInitializer {
 		LOGGER.info("iDog initializing!");
 
         registerModEntities();
+        registerScreenHandlers();
 
         FabricDefaultAttributeRegistry.register(ModEntities.IDOG, iDogEntity.createiDogAttributes());
 	}

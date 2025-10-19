@@ -43,6 +43,7 @@ public class iDogMovingSoundInstance extends MovingSoundInstance {
             System.out.println("Due to iDog entity removal.");
             System.out.println("Volume was: " + volume);
             if(this.repeat) { System.out.println("And it was looping"); } else { System.out.println("And it wasn't looping"); }
+            iDog.soundInstanceFinishedAlert(); //When teleporting
         }
         if(!iDog.isPlayingRecord()) {
             this.setDone();

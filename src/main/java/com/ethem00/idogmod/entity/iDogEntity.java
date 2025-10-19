@@ -5,8 +5,10 @@ import com.ethem00.idogmod.entity.ai.goal.iDogBegGoal;
 import com.ethem00.idogmod.entity.client.render.entity.animation.iDogEasing;
 import com.ethem00.idogmod.entity.client.render.entity.animation.iDogEyeVariants;
 import com.ethem00.idogmod.iDogMod;
+import com.ethem00.idogmod.screen.iDogScreenHandler;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.goal.*;
@@ -21,7 +23,9 @@ import net.minecraft.entity.mob.Angerable;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.passive.*;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.projectile.PersistentProjectileEntity;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SingleStackInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -32,9 +36,14 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.tag.ItemTags;
+import net.minecraft.screen.NamedScreenHandlerFactory;
+import net.minecraft.screen.ScreenHandler;
+import net.minecraft.screen.ScreenHandlerFactory;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
@@ -54,7 +63,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Predicate;
 
-public class iDogEntity extends TameableEntity implements Angerable, SingleStackInventory, iDogEasing, iDogEyeVariants {
+public class iDogEntity extends TameableEntity implements Angerable, SingleStackInventory, iDogEasing, iDogEyeVariants, ExtendedScreenHandlerFactory {
     private static final TrackedData<Boolean> BEGGING = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     private static final TrackedData<Boolean> IS_PLAYING = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
     private static final TrackedData<String> CURRENT_DISC = DataTracker.registerData(iDogEntity.class, TrackedDataHandlerRegistry.STRING);
@@ -207,8 +216,8 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     }
 
     public void songDisplayLogic() {
-        //TODO:
-        // Based on song BPM (if available), each beat corresponds with a pulse/ease.
+
+        /** Based on song BPM (if available), each beat corresponds with a pulse/ease.
         // At the end of every beat, choose a random pulse/ease.
         // Inside the pulse, interpolate RGB and Alpha. And also choose eye covers for when Alpha is 1F (maximum opacity).
         // .....................................................
@@ -229,13 +238,9 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         // .....................................................
         // occupiedAnimTick used for queue.
         // Each animation needs to chain covers together. Clockwise chain would be 6 occupiedAnimTicks
-        // Subtract one animTick for every beat.
+        // Subtract one animTick for every beat.*/
 
-
-        //TODO: If music disc is 11 or (or 5 if there is time), do unique logic
-        // Alternate from Pure Red to Interpolated Effects based on song sections.
-
-        if(this.isSongFinished()) { //TODO: Rethink looping logic. Maybe instead of looping inside MovingSongInstance, loop here and send another packet?
+        if(this.isSongFinished()) { //TODO: Send fresh packets when looping? Desync with visuals?
             stopPlayingRecord(); //Ends any moving sound instances.
         } else {
             int tickBeatCumulative = this.dataTracker.get(TICKS_PER_BEAT_CUMULATIVE) + 1;
@@ -252,7 +257,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
                 case 0 -> tickBeatCumulative * speedMod / ticksPerBeat;
                 //case 1 -> easeInCubic(tickBeatCumulative * speedMod / ticksPerBeat);
                 //case 2 -> easeOutCubic(tickBeatCumulative * speedMod / ticksPerBeat);
-                //case 3 -> easeInOutCubic(tickBeatCumulative * speedMod / ticksPerBeat); //Disabled for now. Might be bugged.
+                //case 3 -> easeInOutCubic(tickBeatCumulative * speedMod / ticksPerBeat); I don't know if I like these.
                 default -> tickBeatCumulative * speedMod / ticksPerBeat;
             };
 
@@ -296,12 +301,14 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     private void setEaseMethod() {
         this.dataTracker.set(EASE_METHOD, iDogEasing.methodAmount);
 
-        float speedMod = switch(this.random.nextInt(3)) {
+        float speedMod = switch(this.random.nextInt(5)) {
           case 0 -> 1F;
-          case 1 -> 0.5F;
-          case 2 -> {
+          case 1 -> 1F;
+          case 2 -> 0.5F;
+          case 3 -> 0.5F;
+          case 4 -> {
               if(this.random.nextInt(3) == 0) {yield 0.25F;} else {yield 0.5F;}}
-            default -> 1F;
+            default -> 0.5F;
         };
         this.dataTracker.set(SPEED_MOD, speedMod);
     }
@@ -732,6 +739,14 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         return this.loopSongs;
     }
 
+    private void setAlertBool(boolean passedBool) {
+        this.alertMe = passedBool;
+    }
+
+    public boolean getAlertBool() {
+        return this.alertMe;
+    }
+
     public void setSongVolume(int passedVolume) {
         this.songVolume = passedVolume/100F;
     }
@@ -746,6 +761,15 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
 
     public void stopPlayingRecord() {
         this.dataTracker.set(IS_PLAYING, false);
+    }
+
+    //TODO SOUND INSTANCE FINISHED WHEN LOOPING. START PLAYING LOGIC IN HERE
+    public void soundInstanceFinishedAlert() {
+        if(this.loopSongs) {
+            stopPlaying();
+
+            this.startPlaying((MusicDiscItem) this.getStack().getItem());
+        }
     }
 
     @Override
@@ -790,8 +814,9 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
                 System.out.println("Eye cover is: " + this.dataTracker.get(EYE_COVER));
             }
 
-            this.setSongVolume(100);
-            this.setLoopBool(false);
+            this.setSongVolume(85);
+            this.setLoopBool(true);
+            this.setAlertBool(false);
 
             playSound(SoundEvents.ENTITY_ITEM_FRAME_ROTATE_ITEM, 2.0F, 0.25F);
             playSound(SoundEvents.ITEM_BOTTLE_FILL_DRAGONBREATH, 2.0F, 0.5F);
@@ -870,7 +895,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     @Override
     public ItemStack getStack(int slot) {
         return this.inventory.get(slot);
-    }
+    } //Returning air even when it isn't present! Huh?? TODO FIX GETSTACK!
 
     public MusicDiscItem getDiscAsItem() {
         Item item = this.getStack().getItem();
@@ -898,7 +923,8 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         }
     }
 
-    @Override //Todo: StopPlaying, removeStack and it's related ilk seem misordered. Investigate.
+    //TODO: CHECK IF IDOG HAS THE MUSIC DISC EVERY BEAT. IF NOT, STOP PLAYING.
+    @Override //Todo: removeStack not being called in mob interaction with disc
     public ItemStack removeStack(int slot, int amount) {
         this.dropRecord();
         ItemStack itemStack = (ItemStack) Objects.requireNonNullElse(this.inventory.get(slot), ItemStack.EMPTY);
@@ -935,16 +961,9 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     @Override
     public ActionResult interactMob(PlayerEntity player, Hand hand) {
 
-        //TODO tree
-        // If not crouched:
-        // If food and hurt, feed. else sit
-        // If Music Disc and no disc, insert disc. If music disc and has disc, remove current disc
-        // If random or empty, sit
-        // If crouched, stop playing current disc and remove current disc.
 
         ItemStack itemStack = player.getStackInHand(hand);
 
-            //TODO isTamed() seems to be lost after reconnect
             if (!this.isOwner(player) && !this.isTamed()) { // if player is not owner, it is not tamed,
 
                 if (itemStack.isOf(Items.BONE) && !this.hasAngerTime()) {
@@ -978,6 +997,12 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
                     {
                         removeStack();
                         return ActionResult.success(this.getWorld().isClient);
+                    } else if (itemStack.isOf(Items.COMPARATOR)) {
+
+                        if (!player.getWorld().isClient) {
+                            player.openHandledScreen(this); // this triggers createMenu()
+                        }
+                        return ActionResult.SUCCESS;
                     } else {
 
                         ActionResult actionResult = super.interactMob(player, hand);
@@ -1017,8 +1042,10 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
 
                 if (itemStack.isIn(ItemTags.MUSIC_DISCS)) {
 
+                    //TODO: MUSIC DISC INSERTION IS BROKEN.
+                    // This line messes everything up. If you have a disc, it only removes it.
                     if (getCurrentDiscItemStack().getItem() instanceof MusicDiscItem) {
-                        removeStack();
+                        this.removeStack();
                     } else {
                         setStack(0, itemStack);
                         if (!player.getAbilities().creativeMode) {
@@ -1116,9 +1143,21 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
 
     //Mob Alert Sounds
     //Replace with custom sound events
-    protected void playAlertSound() {
-        this.playSound(SoundEvents.ITEM_FIRECHARGE_USE, 1F, 1.0F);
+    //TODO: Implement modified goal similar to iDogBegGoal.
+    // Detect entities in a radius, ignore line of sight.
+    // Inside class, if entity is detected and alerts are true, send playAlertSounds(type) to iDog.
+    protected void playAlertSounds(int alertType) {
+
         //TODO ADD CUSTOM ALERT SOUNDS AND IDOG CONTROLLER
+        //-1 Treasure Minecart, 0 Zombie, 1 Skeleton, 2 Creeper, 3 Enderman,
+
+        switch(alertType) {
+            case -1 -> this.playSound(SoundEvents.BLOCK_CHEST_OPEN, 1F, 1.0F);
+            case 0 -> this.playSound(SoundEvents.ENTITY_ZOMBIE_DEATH, 1F, 1.0F);
+            case 1 -> this.playSound(SoundEvents.ENTITY_SKELETON_DEATH, 1F, 1.0F);
+            case 2 -> this.playSound(SoundEvents.ENTITY_CREEPER_DEATH, 1F, 1.0F);
+            case 3 -> this.playSound(SoundEvents.ENTITY_ENDERMAN_DEATH, 1F, 1.0F);
+        }
     }
 
     @Override
@@ -1149,4 +1188,46 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
 
         this.limbAnimator.updateLimbs(f, 0.2F);
     }
+
+    //Screens
+    public Text getDisplayName() {
+        if(this.hasCustomName()) {
+          return this.getCustomName();
+        }
+        return Text.literal("iDog");
+    }
+
+    public Inventory getInventory() {
+        return this;
+    }
+
+    @Override
+    public @Nullable ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
+
+        PacketByteBuf buf = PacketByteBufs.create();
+        buf.writeInt(this.getId()); //iDog entity ID
+        //We provide this to the screenHandler as our class Implements Inventory
+        //Only the Server has the Inventory at the start, this will be synced to the client in the ScreenHandler
+        return new iDogScreenHandler(syncId, playerInventory, this, this);
+    }
+
+    @Override
+    public void writeScreenOpeningData(ServerPlayerEntity player, PacketByteBuf buf) {
+        buf.writeInt(this.getId()); //iDog entity ID
+
+        /* Redundant? Can get from entity.
+        buf.writeFloat(getSongVolume()); //Volume
+        buf.writeBoolean(getLoopBool()); //Loop
+        buf.writeBoolean(getAlertBool()); //Alerts
+         */
+    }
+
+    /*
+    @Override
+    public void writeScreenOpeningData(ServerPlayerEntity serverPlayerEntity, PacketByteBuf packetByteBuf) {
+        //The pos field is a public field from BlockEntity
+        packetByteBuf.writeBlockPos(this.getBlockPos());
+    }
+
+     */
 }
