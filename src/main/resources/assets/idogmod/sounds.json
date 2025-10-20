@@ -1,0 +1,84 @@
+{
+  "entity_idog_death": {
+    "subtitle": "sounds.idogmod.entity_idog_death",
+    "sounds": [
+      "idogmod:idog_death"
+    ]
+  },
+  "entity_idog_ambient": {
+    "subtitle": "sounds.idogmod.entity_idog_ambient",
+    "sounds": [
+      "idogmod:idog_bark1",
+      "idogmod:idog_bark2"
+    ]
+  },
+  "entity_idog_growl": {
+    "subtitle": "sounds.idogmod.entity_idog_growl",
+    "sounds": [
+      "idogmod:idog_growl1",
+      "idogmod:idog_growl2"
+    ]
+  },
+  "entity_idog_pant": {
+    "subtitle": "sounds.idogmod.entity_idog_pant",
+    "sounds": [
+      "idogmod:idog_panting"
+    ]
+  },
+  "entity_idog_hurt": {
+    "subtitle": "sounds.idogmod.entity_idog_hurt",
+    "sounds": [
+      "idogmod:idog_hurt1",
+      "idogmod:idog_hurt2"
+    ]
+  },
+  "entity_idog_whine": {
+    "subtitle": "sounds.idogmod.entity_idog_whine",
+    "sounds": [
+      "idogmod:idog_whine"
+    ]
+  },
+
+  "entity_idog_alert_misc": {
+    "subtitle": "sounds.idogmod.entity_idog_alert_misc",
+    "sounds": [
+      "idogmod:alert_misc1",
+      "idogmod:alert_misc2",
+      "idogmod:alert_misc3",
+      "idogmod:alert_misc4",
+      "idogmod:alert_misc5",
+      "idogmod:alert_misc6",
+      "idogmod:alert_misc7",
+      "idogmod:alert_misc8",
+      "idogmod:alert_misc9"
+    ]
+  },
+  "entity_idog_alert_happy": {
+    "subtitle": "sounds.idogmod.entity_idog_alert_happy",
+    "sounds": [
+      "idogmod:alert_happy1",
+      "idogmod:alert_happy2"
+    ]
+  },
+  "entity_idog_alert_zombie": {
+    "subtitle": "sounds.idogmod.entity_idog_alert_zombie",
+    "sounds": [
+      "idogmod:alert_zombie1",
+      "idogmod:alert_zombie2"
+    ]
+  },
+  "entity_idog_alert_skeleton": {
+    "subtitle": "sounds.idogmod.entity_idog_alert_skeleton",
+    "sounds": [
+      "idogmod:alert_skeleton1",
+      "idogmod:alert_skeleton2"
+    ]
+  },
+  "entity_idog_alert_spider": {
+    "subtitle": "sounds.idogmod.entity_idog_alert_spider",
+    "sounds": [
+      "idogmod:alert_spider1",
+      "idogmod:alert_spider2"
+    ]
+  }
+}

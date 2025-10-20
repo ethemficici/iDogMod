@@ -25,7 +25,7 @@ public class iDogScreenHandler extends ScreenHandler {
         super(ModScreenHandlers.IDOG_SCREEN_HANDLER, syncId);
         this.inventory = new SimpleInventory(0); //Dummy inventory
         this.idog = idog;
-        this.volume = idog.getSongVolume();
+        this.volume = idog.getSongVolume(true);
         this.loopSong = idog.getLoopBool();
         this.doAlerts = idog.getAlertBool();
 

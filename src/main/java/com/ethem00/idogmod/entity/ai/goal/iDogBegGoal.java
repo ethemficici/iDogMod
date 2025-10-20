@@ -18,7 +18,7 @@ public class iDogBegGoal extends Goal {
     private final iDogEntity iDog;
     @Nullable
     private PlayerEntity begFrom;
-    private final World world;
+    private World world;
     private final float begDistance;
     private int timer;
     private final TargetPredicate validPlayerPredicate;

@@ -14,7 +14,12 @@ public class iDogMovingSoundInstance extends MovingSoundInstance {
         super(sound, SoundCategory.RECORDS, SoundInstance.createRandom());
         this.iDog = iDogPassed;
         this.repeat = false;
-        this.volume = volumePassed;
+
+        if(volumePassed <= 0F) {
+            this.volume = 0.05F;
+        } else {
+            this.volume = volumePassed;
+        }
         this.x = iDog.getX();
         this.y = iDog.getY();
         this.z = iDog.getZ();
@@ -26,7 +31,7 @@ public class iDogMovingSoundInstance extends MovingSoundInstance {
 
     @Override
     public void tick() {
-        this.volume = this.iDog.getSongVolume();
+        this.volume = this.iDog.getSongVolume(false);
         this.x = this.iDog.getX();
         this.y = this.iDog.getY();
         this.z = this.iDog.getZ();

@@ -19,6 +19,7 @@ import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.PressableWidget;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.MusicDiscItem;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
@@ -49,7 +50,7 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
 
         InventoryScreen.drawEntity(context, i + 124, j + 114, 24, i + 51 - this.mouseX, j + 75 - 50 - this.mouseY, this.idog);
 
-        float m = this.idog.getSongVolume();
+        float m = this.idog.getSongVolume(true);
         if (m > 0) { //Draw volume meter with speaker unmuted
             int n = ((int) (m * 106));
             if (n > 0) {
@@ -80,17 +81,19 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
     @Environment(EnvType.CLIENT)
     private void typeBasedPacketSwitch(int type) {
         switch(type) {
-            case -10 -> this.sendButtonPacket(-10);   //Vol -10 Packet
-            case -5 -> this.sendButtonPacket(-5);     //Vol -5 Packet
-            case 5 -> this.sendButtonPacket(5);       //Vol +5 Packet
-            case 10 -> this.sendButtonPacket(10);     //Vol +10 Packet
+            case -10 -> this.sendButtonPacket(-10);     //Vol -10 Packet
+            case -5 -> this.sendButtonPacket(-5);       //Vol -5 Packet
+            case 5 -> this.sendButtonPacket(5);         //Vol +5 Packet
+            case 10 -> this.sendButtonPacket(10);       //Vol +10 Packet
             //------------------------------------------------
-            case 1 -> this.sendButtonPacket(1);       //Vol MAX Packet
-            case -1 -> this.sendButtonPacket(-1);     //Vol ZERO Packet
-            case 2 -> this.sendButtonPacket(2);       //Loop ON Packet
-            case -2 -> this.sendButtonPacket(-2);     //Loop OFF Packet
-            case 3 -> this.sendButtonPacket(3);       //Alerts ON Packet
-            case -3 -> this.sendButtonPacket(-3);     //Alerts OFF Packet
+            case 1 -> this.sendButtonPacket(1);         //Vol MAX Packet
+            case -1 -> this.sendButtonPacket(-1);       //Vol ZERO Packet
+            case 2 -> this.sendButtonPacket(2);         //Loop ON Packet
+            case -2 -> this.sendButtonPacket(-2);       //Loop OFF Packet
+            case 3 -> this.sendButtonPacket(3);         //Alerts ON Packet
+            case -3 -> this.sendButtonPacket(-3);       //Alerts OFF Packet
+            //-------------------------------------------------
+            case 4 -> this.sendButtonPacket(4);         //EJECT Disc Packet
             //Warning
             default -> System.out.println("Non-compliant type attempt of: " + type);
         }
@@ -123,11 +126,62 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
         addDrawableChild(new iDogScreenWidget(this, x + 44, y + 16, 208, 96, 16, 16, Text.empty(), 5) {});
         addDrawableChild(new iDogScreenWidget(this, x + 62, y + 16, 208, 64, 16, 16, Text.empty(), 10) {});
         //Mute
-        addDrawableChild(new iDogSpeakerWidget(this, x + 80, y + 16, 208, 0, 16, 16, Text.empty(), idog.getSongVolume() > 0 ? 1 : -1) {});
+        addDrawableChild(new iDogSpeakerWidget(this, x + 80, y + 16, 208, 0, 16, 16, Text.empty(), idog.getSongVolume(true) > 0 ? 1 : -1) {});
         //Loop
         addDrawableChild(new iDogStateWidget(this, x + 98, y + 16, 224, 0, 32, 16, Text.empty(), idog.getLoopBool() ? 2 : -2) {});
         //Alert
         addDrawableChild(new iDogStateWidget(this, x + 132, y + 16, 224, 64, 32, 16, Text.empty(), idog.getAlertBool() ? 3 : -3) {});
+        //EJECT
+        addDrawableChild(new iDogEjectWidget(this, x + 97, y + 51, 202, 192, 54, 18, Text.empty(), 4) {});
+    }
+
+    @Environment(EnvType.CLIENT)
+    abstract static class iDogEjectWidget extends iDogScreenWidget {
+        public iDogEjectWidget(iDogScreen screen, int x, int y, int u, int v, int width, int height, Text message, int buttonType) {
+            super(screen, x, y, u, v, width, height, message, buttonType);
+        }
+
+        @Override
+        public void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
+            // Draws a section of the GUI texture instead of a button texture
+
+            if(screen.idog.getDiscAsItem() instanceof MusicDiscItem) {
+                if(this.waitTime >= 10) { //On
+                    context.drawTexture(SCREEN_TEXTURE, this.getX(), this.getY(), u, v, width, height);
+                } else { //Off
+                    context.drawTexture(SCREEN_TEXTURE, this.getX(), this.getY(), u, v + height, width, height);
+                }
+            } else {
+                context.drawTexture(SCREEN_TEXTURE, this.getX() + 8008, this.getY() + 8008, u, v, width, height);
+            }
+        }
+
+        @Override
+        public void onClick(double mouseX, double mouseY) {
+            this.waitTime = 0;
+
+            if(screen.idog.getDiscAsItem() instanceof MusicDiscItem) {
+                this.playDownSound(MinecraftClient.getInstance().getSoundManager());
+                screen.typeBasedPacketSwitch(type);
+            }
+        }
+
+        @Override
+        public boolean mouseClicked(double mouseX, double mouseY, int button) {
+            if (this.active && this.visible) {
+                if (this.isValidClickButton(button)) {
+                    boolean bl = this.clicked(mouseX, mouseY);
+                    if (bl) {
+                        this.onClick(mouseX, mouseY);
+                        return true;
+                    }
+                }
+
+                return false;
+            } else {
+                return false;
+            }
+        }
     }
 
     @Environment(EnvType.CLIENT)
@@ -140,7 +194,7 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
         public void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
             // Draws a section of the GUI texture instead of a button texture
             if(this.waitTime >= 10) { //On
-                if(screen.idog.getSongVolume() > 0) {
+                if(screen.idog.getSongVolume(true) > 0) {
                     context.drawTexture(SCREEN_TEXTURE, this.getX(), this.getY(), u, v, width, height);} else {
                     context.drawTexture(SCREEN_TEXTURE, this.getX(), this.getY(), u, v + 32, width, height);}
             } else { //Off
@@ -154,7 +208,7 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
         public void onClick(double mouseX, double mouseY) {
             this.waitTime = 0;
 
-            if(screen.idog.getSongVolume() > 0) {this.type = -1;}
+            if(screen.idog.getSongVolume(true) > 0) {this.type = -1;}
             else {this.type = 1;}
             screen.typeBasedPacketSwitch(type);
         }

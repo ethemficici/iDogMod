@@ -7,23 +7,20 @@ import com.ethem00.idogmod.entity.iDogEntity;
 import com.ethem00.idogmod.iDogMod;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.entity.feature.EyesFeatureRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 
-import static org.apache.commons.lang3.RandomUtils.nextInt;
-
 /**
  * Eye interpolation and easing logic handled in {@link iDogEntity#songDisplayLogic()}
  * Also see {@link iDogEasing}
  *
- * You can find the texture identifiers inside of {@link iDogEyeVariants} 
- * Modded discs are first randomized for a fake music disc name inside of {@link iDogEntity#getEyeVariantFromDisc}
- * 
- * https://easings.net/
+ * You can find the texture identifiers inside of {@link iDogEyeVariants}
+ * Modded discs are first randomized for a fake music disc name inside of {@link iDogEntity getEyeVariantFromDisc}
+ *
+ * <a href="https://easings.net/">...</a>
  * Easing mathematical functions provided by Andrey Sitnik and Ivan Solovev
  */
 
@@ -41,6 +38,13 @@ public class iDogEyesFeatureRenderer<T extends iDogEntity, M extends iDogEntityM
     }
 
     private Identifier getEyesIdentifier(String disc, Integer variant) {
+
+        /* TODO: hasAngerTime() seems to be bugged somehow.
+        if(angryUntamed) {
+            disc = "music_disc_11";
+            variant = 0;
+        }
+         */
 
         //Renderer is sometimes ahead of client/server sync. So it may choose to render bounds from previous selection.
         return switch (disc) {

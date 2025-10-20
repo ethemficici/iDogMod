@@ -2,5 +2,12 @@
   "entity.idogmod.idog": "iDog",
 
   "item.idogmod.battery": "Battery",
-  "item.idogmod.floppy_disk": "Floppy Disk"
+  "item.idogmod.floppy_disk": "Floppy Disk",
+
+  "sounds.idogmod.entity_idog_death": "iDog dies",
+  "sounds.idogmod.entity_idog_ambient": "iDog barks",
+  "sounds.idogmod.entity_idog_growl": "iDog growls",
+  "sounds.idogmod.entity_idog_pant": "iDog pants",
+  "sounds.idogmod.entity_idog_hurt": "iDog hurts",
+  "sounds.idogmod.entity_idog_whine": "iDog whines"
 }
