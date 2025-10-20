@@ -36,20 +36,22 @@ public class iDogModClient implements ClientModInitializer {
             int entityId = buf.readInt();
             Identifier discId = buf.readIdentifier();
 
-                    //System.out.println("Recieved from: " + entityId);
+                    System.out.println("Recieved from: " + entityId);
 
         client.execute(() -> {
             ClientWorld world = MinecraftClient.getInstance().world;
             if (world == null) return;
             Entity entity = world.getEntityById(entityId);
-            //System.out.println("Client world confirmed, entity grabbed.");
+            System.out.println("Client world confirmed, entity grabbed.");
 
                     if(entity instanceof iDogEntity) {
                         Item item = Registries.ITEM.get(discId);
-                        //System.out.println("Entity is iDog");
+                        System.out.println("Entity is iDog");
 
+                        //TODO: Instance is no longer accepting the loopBoolean. Looping is handled in the iDog's songDisplayLogic.
+                        // Trim the packet
                         if(item instanceof MusicDiscItem) {
-                            //System.out.println("Item is of instance MusicDiscItem");
+                            System.out.println("Item is of instance MusicDiscItem");
                             SoundEvent sound = ((MusicDiscItem) item).getSound();
                             MinecraftClient.getInstance().getSoundManager().play(new iDogMovingSoundInstance(((iDogEntity) entity), sound, ((iDogEntity) entity).getLoopBool(), ((iDogEntity) entity).getSongVolume()));
                         }

@@ -72,6 +72,10 @@ public class iDogEyesFeatureRenderer<T extends iDogEntity, M extends iDogEntityM
         };
     }
 
+    //TODO: Render thread seemingly sends warnings after tamed iDogs are unloaded/teleport to player.
+    // Investigate. Maybe its a coincidence, but it seems odd.
+    // [00:04:51] [Render thread/WARN] (Minecraft) Received passengers for unknown entity
+    // [00:05:04] [Render thread/WARN] (Minecraft) Received passengers for unknown entity
     @Override
     public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light,
                        T iDog, float limbAngle, float limbDistance, float tickDelta,

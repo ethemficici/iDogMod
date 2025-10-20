@@ -13,53 +13,37 @@ public class iDogMovingSoundInstance extends MovingSoundInstance {
     public iDogMovingSoundInstance(iDogEntity iDogPassed, SoundEvent sound, boolean loopBoolPassed, float volumePassed) {
         super(sound, SoundCategory.RECORDS, SoundInstance.createRandom());
         this.iDog = iDogPassed;
-        this.repeat = loopBoolPassed;
+        this.repeat = false;
         this.volume = volumePassed;
         this.x = iDog.getX();
         this.y = iDog.getY();
         this.z = iDog.getZ();
 
+        //Debug
         System.out.println("iDog is now playing: " + sound.getId().toString());
         System.out.println("With volume of: " + volume);
-        if(this.repeat) { System.out.println("With looping"); } else { System.out.println("Without looping"); }
     }
 
     @Override
     public void tick() {
-        this.repeat = iDog.getLoopBool();
-        this.volume = iDog.getSongVolume();
-        this.x = iDog.getX();
-        this.y = iDog.getY();
-        this.z = iDog.getZ();
+        this.volume = this.iDog.getSongVolume();
+        this.x = this.iDog.getX();
+        this.y = this.iDog.getY();
+        this.z = this.iDog.getZ();
 
-        //TODO: INSTANT STOP IS HAPPENING AGAIN! FIGURE OUT WHY! Not clearing songEnd data?
-
-        //Todo: Ping original entity when SoundInstance is completed..? Could help with eye animation desync/pause desync...
-        // Currently if the iDog teleports, this audio is finished due to unload and the player has to manually reset the song.
-        // The iDog entity itself never realizes the sound instance was cancelled.
+        //TODO: INSTANT STOP IS HAPPENING AGAIN! FIGURE OUT WHY! Not clearing songEndTick?
         if(iDog.isRemoved()) {
             this.setDone();
             System.out.println("iDog song playback has stopped.");
             System.out.println("Due to iDog entity removal.");
             System.out.println("Volume was: " + volume);
-            if(this.repeat) { System.out.println("And it was looping"); } else { System.out.println("And it wasn't looping"); }
-            iDog.soundInstanceFinishedAlert(); //When teleporting
         }
-        if(!iDog.isPlayingRecord()) {
+        if(!iDog.isPlayingRecord()) { //TODO: Check if the player removed the disc.
             this.setDone();
             System.out.println("iDog song playback has stopped.");
             System.out.println("Due to record removal.");
             System.out.println("Volume was: " + volume);
-            if(this.repeat) { System.out.println("And it was looping"); } else { System.out.println("And it wasn't looping"); }
-        }
-        if(this.volume <= 0) {
-            this.setDone();
-            System.out.println("iDog song playback has stopped.");
-            System.out.println("Due to muted volume.");
-            System.out.println("Volume was: " + volume);
-            if(this.repeat) { System.out.println("And it was looping"); } else { System.out.println("And it wasn't looping"); }
-            // DON'T FORGET TO USE >> this. << FOR INSTANCES! ALWAYS TRIPLE CHECK! TRIPLE BAKA!
-            // THAT'S WHY IT WASN'T WORKING BEFORE!
+            //iDog.soundInstanceFinishedAlert(); //TODO: When teleporting
         }
     }
 }
