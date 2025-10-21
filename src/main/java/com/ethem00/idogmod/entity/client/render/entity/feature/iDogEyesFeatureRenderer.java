@@ -47,6 +47,7 @@ public class iDogEyesFeatureRenderer<T extends iDogEntity, M extends iDogEntityM
          */
 
         //Renderer is sometimes ahead of client/server sync. So it may choose to render bounds from previous selection.
+        // This is why we compare the incoming integer with the length. Otherwise, Minecraft grows turgid and crash ensues
         return switch (disc) {
             case "none" -> (compareInteger(variant, music_disc_default_variants.length-1)) ? music_disc_default_variants[0] : music_disc_default_variants[variant];
             case "music_disc_5" -> (compareInteger(variant, music_disc_5_variants.length-1)) ? music_disc_5_variants[0] : music_disc_5_variants[variant];

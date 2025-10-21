@@ -592,6 +592,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
             case "music_disc_strad" -> 188;
             case "music_disc_wait" -> 114;
             case "music_disc_ward" -> 107;
+            case "music_disc_calm4" -> 140;
             default -> 130;
         };
 

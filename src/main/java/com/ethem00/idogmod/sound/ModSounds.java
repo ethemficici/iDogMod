@@ -8,6 +8,12 @@ import net.minecraft.util.Identifier;
 
 public class ModSounds {
 
+    //CALM4
+    public static final SoundEvent MUSIC_DISC_CALM4 = registerSoundEvent("music_disc.calm4");
+
+    //BOX OPEN
+    public static final SoundEvent ITEM_IDOG_BOX_OPEN = registerSoundEvent("item_idog_box_open");
+
     //DEATH
     public static final SoundEvent ENTITY_IDOG_DEATH = registerSoundEvent("entity_idog_death");
     //BARK

@@ -1,18 +1,13 @@
 package com.ethem00.idogmod.screen;
 
 import com.ethem00.idogmod.entity.iDogEntity;
-import com.ethem00.idogmod.iDogMod;
-import net.minecraft.entity.passive.AbstractHorseEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.Slot;
-import net.minecraft.util.Identifier;
-import org.jetbrains.annotations.Nullable;
 
 public class iDogScreenHandler extends ScreenHandler {
     private final Inventory inventory;

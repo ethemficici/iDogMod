@@ -10,9 +10,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.ethem00.idogmod.entity.ModEntities.registerModEntities;
+import static com.ethem00.idogmod.item.ModItems.registerModItems;
 import static com.ethem00.idogmod.network.ModPackets.registerC2SPackets;
 import static com.ethem00.idogmod.screen.ModScreenHandlers.registerScreenHandlers;
 import static com.ethem00.idogmod.sound.ModSounds.registerSounds;
+import static com.ethem00.idogmod.util.ModLootTableModifiers.modifyLootTables;
 
 public class iDogMod implements ModInitializer {
 	public static final String MOD_ID = "idogmod";
@@ -37,6 +39,8 @@ public class iDogMod implements ModInitializer {
         registerScreenHandlers();
         registerC2SPackets();
         registerSounds();
+        registerModItems();
+        modifyLootTables();
 
         FabricDefaultAttributeRegistry.register(ModEntities.IDOG, iDogEntity.createiDogAttributes());
 	}

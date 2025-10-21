@@ -1,4 +1,21 @@
 {
+  "music_disc.calm4": {
+    "subtitle": "subtitles.record.calm4",
+    "sounds": [
+      {
+        "name": "idogmod:calm4",
+        "stream": true
+      }
+    ]
+  },
+
+  "item_idog_box_open": {
+    "subtitle": "sounds.idogmod.item_idog_box_open",
+    "sounds": [
+      "idogmod:idog_box_open"
+    ]
+  },
+
   "entity_idog_death": {
     "subtitle": "sounds.idogmod.entity_idog_death",
     "sounds": [

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "idogmod:block/idog_cardboard_worn_front2",
+    "side": "idogmod:block/idog_cardboard_worn_side",
+    "top": "idogmod:block/idog_cardboard_top"
+  }
+}

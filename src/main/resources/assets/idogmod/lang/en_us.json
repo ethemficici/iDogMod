@@ -1,8 +1,11 @@
 {
   "entity.idogmod.idog": "iDog",
+  "item.idogmod.idog_box": "iDog Box",
 
-  "item.idogmod.battery": "Battery",
-  "item.idogmod.floppy_disk": "Floppy Disk",
+  "item.idogmod.music_disc_calm4": "§bMusic Disc",
+  "item.idogmod.music_disc_calm4.desc": "Markus Persson - Calm4",
+
+  "subtitles.record.calm4": "Markus Persson - Calm4",
 
   "sounds.idogmod.entity_idog_death": "iDog dies",
   "sounds.idogmod.entity_idog_ambient": "iDog barks",

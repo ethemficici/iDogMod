@@ -65,6 +65,11 @@ public class iDogAlertsGoal extends Goal {
     @Override
     public void tick() {
 
+        //TODO: WHEN A MINECART IS REMOVED,
+        // THE IDOG CONTINUES STARING IN THE PLACE IT WAS.
+        // IT WILL ALSO ACTIVATE SOUNDS EVEN THOUGH IT NO LONGER EXISTS.
+        // FIX THIS
+        // .isAlive() PROBABLY DOESNT WORK WITH MINECARTS!
         if(this.foundTreasure) {
             this.iDog.getLookControl().lookAt(treasure, 30.0F, 30.0F);
         } else {
@@ -74,7 +79,12 @@ public class iDogAlertsGoal extends Goal {
         if (this.cooldown <= 0 && !this.iDog.isAlerting() && this.iDog.getAlertBool()) {
             this.iDog.setAlerting(true);
             this.iDog.playAlertSounds(switchThreatByType());
-            this.cooldown = 400; // play every minute
+
+            if(this.iDog.isSitting()){
+                this.cooldown = 400;
+            } else {
+                this.cooldown = 200;
+            }
         } else {
             if(!this.iDog.isAlerting() && this.iDog.getAlertBool()) {
                 this.cooldown--;

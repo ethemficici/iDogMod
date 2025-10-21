@@ -51,6 +51,8 @@ public class iDogMovingAlertInstance extends MovingSoundInstance {
             this.setDone();
             System.out.println("iDog alert playback has stopped.");
             System.out.println("Due to iDog entity removal.");
+            this.packetSender();
+            this.setDone();
         }
         if(!iDog.getAlertBool()) {
             System.out.println("iDog alert playback has stopped.");
