@@ -90,5 +90,23 @@
       "idogmod:alert_spider1",
       "idogmod:alert_spider2"
     ]
+  },
+  "entity_idog_alert_skeleton": {
+    "subtitle": "sounds.idogmod.entity_idog_alert_skeleton",
+    "sounds": [
+      "idogmod:alert_skeleton2"
+    ]
+  },
+  "entity_idog_alert_enderman": {
+    "subtitle": "sounds.idogmod.entity_idog_alert_enderman",
+    "sounds": [
+      "idogmod:alert_enderman1"
+    ]
+  },
+  "entity_idog_alert_creeper": {
+    "subtitle": "sounds.idogmod.entity_idog_alert_creeper",
+    "sounds": [
+      "idogmod:alert_creeper1"
+    ]
   }
 }

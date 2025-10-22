@@ -35,8 +35,13 @@ public class ModSounds {
     public static final SoundEvent ENTITY_IDOG_ALERT_ZOMBIE = registerSoundEvent("entity_idog_alert_zombie");
     //SKELETON ALERT
     public static final SoundEvent ENTITY_IDOG_ALERT_SKELETON = registerSoundEvent("entity_idog_alert_skeleton");
-    //SKELETON ALERT
+    //SPIDER ALERT
     public static final SoundEvent ENTITY_IDOG_ALERT_SPIDER = registerSoundEvent("entity_idog_alert_spider");
+    //CREEPER ALERT
+    public static final SoundEvent ENTITY_IDOG_ALERT_CREEPER = registerSoundEvent("entity_idog_alert_creeper");
+    //ENDERMAN ALERT
+    public static final SoundEvent ENTITY_IDOG_ALERT_ENDERMAN = registerSoundEvent("entity_idog_alert_enderman");
+
 
     public static SoundEvent registerSoundEvent(String name) {
         Identifier id = new Identifier(iDogMod.MOD_ID, name);

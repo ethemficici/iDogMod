@@ -83,20 +83,20 @@ public class iDogModClient implements ClientModInitializer {
                             SoundEvent sound = switch(alertType) {
                                 case -1 -> ModSounds.ENTITY_IDOG_ALERT_HAPPY;
                                 case 0 -> ModSounds.ENTITY_IDOG_ALERT_ZOMBIE;
-                                case 1 -> ModSounds.ENTITY_IDOG_ALERT_MISC; //SKELETON
+                                case 1 -> ModSounds.ENTITY_IDOG_ALERT_SKELETON; //SKELETON
                                 case 2 -> ModSounds.ENTITY_IDOG_ALERT_SPIDER;
-                                case 3 -> ModSounds.ENTITY_IDOG_ALERT_MISC; //CREEPER
-                                case 4 -> ModSounds.ENTITY_IDOG_ALERT_MISC; //ENDERMAN
+                                case 3 -> ModSounds.ENTITY_IDOG_ALERT_CREEPER; //CREEPER
+                                case 4 -> ModSounds.ENTITY_IDOG_ALERT_ENDERMAN; //ENDERMAN
                                 default -> ModSounds.ENTITY_IDOG_ALERT_MISC;
                             };
 
                             float seconds = switch(alertType) {
                                 case -1 -> 8;
                                 case 0 -> 17.4F;
-                                case 1 -> 8; //TODO
+                                case 1 -> 20.5F; //TODO SKELETON
                                 case 2 -> 15.2F;
-                                case 3 -> 8; //TODO
-                                case 4 -> 8; //TODO
+                                case 3 -> 15.9F; //TODO CREEPER
+                                case 4 -> 20; //TODO ENDERMAN
                                 default -> 8;
                             };
 
