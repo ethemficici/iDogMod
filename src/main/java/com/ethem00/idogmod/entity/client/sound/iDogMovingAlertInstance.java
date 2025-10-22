@@ -67,7 +67,7 @@ public class iDogMovingAlertInstance extends MovingSoundInstance {
 
         this.ticks++;
         //Debug
-        System.out.println(this.ticks + " of " + this.secondsInTicks);
+        //System.out.println(this.ticks + " of " + this.secondsInTicks);
     }
 
     private void packetSender() {

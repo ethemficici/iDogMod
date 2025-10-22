@@ -172,7 +172,7 @@ public class iDogLidFeatureRenderer<T extends iDogEntity, M extends iDogEntityMo
             T idogEntity, float limbAngle, float limbDistance, float tickDelta,
             float animationProgress, float headYaw, float headPitch) {
 
-        VertexConsumer eyeVertexConsumerThree = vertexConsumers.getBuffer(RenderLayer.getEntityCutoutNoCull(getCoverTexture(idogEntity.getEyeCover())));
+        VertexConsumer eyeVertexConsumerThree = vertexConsumers.getBuffer(RenderLayer.getArmorCutoutNoCull(getCoverTexture(idogEntity.getEyeCover())));
         this.getContextModel().render(matrices, eyeVertexConsumerThree, light, OverlayTexture.DEFAULT_UV, 1.0F, 1.0F, 1.0F, 1.0F);
     }
 }

@@ -6,9 +6,7 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.ai.TargetPredicate;
 import net.minecraft.entity.ai.goal.Goal;
 import net.minecraft.entity.mob.HostileEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.ChestMinecartEntity;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
@@ -50,9 +48,9 @@ public class iDogAlertsGoal extends Goal {
 
         this.treasure = findChestMinecart();
         this.threat = findThreat();
-        if(this.treasure != null) { foundTreasure = true; System.out.println("Found treasure"); return true; }
-        else if (this.threat != null) { foundTreasure = false; System.out.println("Found threat"); return true; }
-        else {System.out.println("Found nothing"); return false;}
+        if(this.treasure != null) { foundTreasure = true;  return true; }
+        else if (this.threat != null) { foundTreasure = false;  return true; }
+        else {; return false;}
     }
 
     @Override
@@ -88,7 +86,7 @@ public class iDogAlertsGoal extends Goal {
         } else {
             if(!this.iDog.isAlerting() && this.iDog.getAlertBool()) {
                 this.cooldown--;
-                System.out.println(this.cooldown);
+                //System.out.println(this.cooldown);
             }
         }
     }

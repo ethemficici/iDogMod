@@ -84,13 +84,6 @@
       "idogmod:alert_zombie2"
     ]
   },
-  "entity_idog_alert_skeleton": {
-    "subtitle": "sounds.idogmod.entity_idog_alert_skeleton",
-    "sounds": [
-      "idogmod:alert_skeleton1",
-      "idogmod:alert_skeleton2"
-    ]
-  },
   "entity_idog_alert_spider": {
     "subtitle": "sounds.idogmod.entity_idog_alert_spider",
     "sounds": [
