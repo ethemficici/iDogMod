@@ -847,6 +847,8 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
                 this.setTicksPerBeat();
                 this.setEaseMethod();
 
+                //Is stopPlaying() running on client? Maybe send a packet to the client immediately.
+
                 //Debug
                 //System.out.println("Song End Tick is: " + this.dataTracker.get(SONG_END_TICK));
 
@@ -862,6 +864,25 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
                 //System.out.println("Anim step is: " + this.dataTracker.get(ANIMATION_STEP) + " of " + this.dataTracker.get(ANIMATION_STEP_COUNT));
                 //System.out.println("Eye cover is: " + this.dataTracker.get(EYE_COVER));
             }
+
+            /* TODO: THIS MIGHT BE A SOLUTION TO IS_PLAYING MISMATCH
+            boolean serverBool;
+            boolean clientBool;
+
+            if(!this.getWorld().isClient) {
+                serverBool = this.dataTracker.get(IS_PLAYING);
+            } else {
+                clientBool = this.dataTracker.get(IS_PLAYING);
+            }
+
+            if(serverBool != clientBool) {
+                this.dataTracker.set(IS_PLAYING, true);
+            }
+             */
+
+
+            this.dataTracker.set(IS_PLAYING, true);
+            this.debugPrintDataTrackedValues();
 
             //Sending {@link iDogMovingSoundInstance} Packet information to server
             if (!this.getWorld().isClient) {
@@ -1012,6 +1033,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
             case 5 -> this.setSongVolume((int) ((this.getSongVolume(true) * 100) + 5));      //Vol +5 Packet
             case 10 -> this.setSongVolume((int) ((this.getSongVolume(true) * 100) + 10));    //Vol +10 Packet
             //------------------------------------------------
+            case 0 -> this.stopPlaying(); //TODO once i figure out why isPlaying seems to not refresh properly
             case 1 -> this.setSongVolume(100);      //Vol MAX Packet
             case -1 -> this.setSongVolume(0);       //Vol ZERO Packet
             case 2 -> this.setLoopBool(true);       //Loop ON Packet
@@ -1068,6 +1090,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
                     {
                         if (!player.getWorld().isClient) {
                             player.openHandledScreen(this); // this triggers createMenu()
+                            return ActionResult.SUCCESS;
                         }
 
                         //TODO: REPLACE THIS AND THE CROUCH DISC REMOVAL.
@@ -1297,6 +1320,49 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         buf.writeBoolean(getLoopBool()); //Loop
         buf.writeBoolean(getAlertBool()); //Alerts
          */
+    }
+
+    public void debugPrintDataTrackedValues() {
+        System.out.println("--DEBUG VALUES START HERE--");
+        if(this.getWorld().isClient)
+        {
+            System.out.println("On client:");
+        } else {
+            System.out.println("On server:");
+        }
+
+        //System.out.println(this.dataTracker.get(BEGGING));
+        //System.out.println(this.dataTracker.get(ALERTING));
+
+        System.out.println("Start tick: "+this.dataTracker.get(START_TICK));
+        System.out.println("End tick: "+this.dataTracker.get(SONG_END_TICK));
+        //System.out.println(this.dataTracker.get(SONG_VOLUME));
+        //System.out.println(this.dataTracker.get(LOOP_BOOLEAN));
+        //System.out.println(this.dataTracker.get(ALERT_BOOLEAN));
+
+        System.out.println("Current disc: "+this.dataTracker.get(CURRENT_DISC));
+        System.out.println("Disc itemstack: "+this.dataTracker.get(DISC_ITEMSTACK));
+
+
+        System.out.println("Is playing?: "+this.dataTracker.get(IS_PLAYING));
+        //System.out.println(this.dataTracker.get(EYE_VARIANT));
+        //System.out.println(this.dataTracker.get(EYE_COVER));
+        //System.out.println(this.dataTracker.get(CURRENT_BPM));
+        //System.out.println(this.dataTracker.get(TICKS_PER_BEAT_CUMULATIVE));
+        //System.out.println(this.dataTracker.get(TICKS_PER_BEAT));
+        //System.out.println(this.dataTracker.get(ANIMATION_SET));
+        //System.out.println(this.dataTracker.get(ANIMATION_STEP));
+        //System.out.println(this.dataTracker.get(ANIMATION_STEP_COUNT));
+        //System.out.println("Beat cumulative: "+this.dataTracker.get(BEAT_CUMULATIVE));
+        //System.out.println(this.dataTracker.get(EASE_METHOD));
+        //System.out.println(this.dataTracker.get(SPEED_MOD));
+        if(this.getWorld().isClient)
+        {
+            System.out.println("On client.");
+        } else {
+            System.out.println("On server.");
+        }
+        System.out.println("--DEBUG VALUES END HERE--");
     }
 
     /*

@@ -49,6 +49,8 @@ public class iDogMovingSoundInstance extends MovingSoundInstance {
             System.out.println("Due to record removal.");
             System.out.println("Volume was: " + volume);
             //iDog.soundInstanceFinishedAlert(); //TODO: When teleporting
+            this.iDog.debugPrintDataTrackedValues();
+
         }
     }
 }

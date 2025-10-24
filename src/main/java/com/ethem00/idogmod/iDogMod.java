@@ -16,6 +16,7 @@ import static com.ethem00.idogmod.screen.ModScreenHandlers.registerScreenHandler
 import static com.ethem00.idogmod.sound.ModSounds.registerSounds;
 import static com.ethem00.idogmod.util.ModLootTableModifiers.modifyLootTables;
 
+// Rest in peace Tiger. Oct 24th 2025.
 public class iDogMod implements ModInitializer {
 	public static final String MOD_ID = "idogmod";
     public static final Identifier PLAY_IDOG_MUSIC = new Identifier(iDogMod.MOD_ID, "play_idog_music");

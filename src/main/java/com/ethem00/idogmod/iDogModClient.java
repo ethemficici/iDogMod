@@ -30,6 +30,18 @@ public class iDogModClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
 
+
+        //TODO: NEW PACKET TYPE
+        // MOVING SOUND INSTANCE PINGS BACK TO IDOG EVERY ~5 SECONDS
+        // TO CONFIRM THE SONG IS STILL PLAYING.
+        // IF NOT, SET ISPLAYING TO FALSE
+        // int missedPackets
+        // missedPackets++
+        // resetPackets { missedPackets = 0)
+        // if(missPackets > 5) {stopPlaying()}
+
+        //TODO HAVE IDOGS LOAD CHUNKS WHILE PLAYING MUSIC?
+
         EntityRendererRegistry.register(ModEntities.IDOG, iDogRenderer::new);
         EntityModelLayerRegistry.registerModelLayer(ModModelLayers.IDOG, iDogEntityModel::getTexturedModelData);
         HandledScreens.register(ModScreenHandlers.IDOG_SCREEN_HANDLER, iDogScreen::new);
