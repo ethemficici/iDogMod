@@ -8,6 +8,8 @@ import com.ethem00.idogmod.entity.client.render.entity.animation.iDogEyeVariants
 import com.ethem00.idogmod.iDogMod;
 import com.ethem00.idogmod.screen.iDogScreenHandler;
 import com.ethem00.idogmod.sound.ModSounds;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
@@ -331,7 +333,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
 
     //Bounds are listed below. Denotes the animation set. Zero included
     private void setNextAnimSetNumber() {
-        this.dataTracker.set(ANIMATION_SET, this.random.nextInt(24));
+        this.dataTracker.set(ANIMATION_SET, this.random.nextInt(25));
     }
 
     //Returns the EyeCover for iDogLidFeatureRenderer if not initializing.
@@ -501,7 +503,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
             case "music_disc_blue" -> this.random.nextInt(music_disc_randomBlue_variants.length-1);
             case "music_disc_rainbow" -> this.random.nextInt(music_disc_randomRainbow_variants.length-1);
             case "music_disc_creeper" -> this.random.nextInt(music_disc_randomCreeper_variants.length-1);
-            default -> { int rand = this.random.nextInt(4);
+            default -> { int rand = this.random.nextInt(5);
                 switch (rand) {
                     case 0 -> setCurrentDisc("music_disc_red");
                     case 1 -> setCurrentDisc("music_disc_green");
@@ -880,10 +882,6 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
             }
              */
 
-
-            this.dataTracker.set(IS_PLAYING, true);
-            this.debugPrintDataTrackedValues();
-
             //Sending {@link iDogMovingSoundInstance} Packet information to server
             if (!this.getWorld().isClient) {
 
@@ -892,13 +890,17 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
                 PacketByteBuf buf = PacketByteBufs.create();
                 buf.writeInt(this.getId());
                 buf.writeIdentifier(Registries.ITEM.getId(musicDisc));
+                buf.writeString(this.dataTracker.get(CURRENT_DISC));
                 ServerWorld serverWorld = (ServerWorld) this.getWorld();
                 serverWorld.getPlayers().forEach(player -> {
                     ServerPlayNetworking.send(player, iDogMod.PLAY_IDOG_MUSIC, buf);
                     //System.out.println("Sound packet sent to Player: " + player + " from entity: " + this.getId() + " with disc ID of: " + Registries.ITEM.getId(musicDisc));
                 });
+
+                //TODO: Tell the client to set the current disc and itemStack. And set isPlaying to true.
             }
-            this.currentSong = musicDisc.getSound();
+            this.debugPrintDataTrackedValues();
+            //this.currentSong = musicDisc.getSound();
             this.markDirty();
         } else {
             //Debug
@@ -1033,7 +1035,6 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
             case 5 -> this.setSongVolume((int) ((this.getSongVolume(true) * 100) + 5));      //Vol +5 Packet
             case 10 -> this.setSongVolume((int) ((this.getSongVolume(true) * 100) + 10));    //Vol +10 Packet
             //------------------------------------------------
-            case 0 -> this.stopPlaying(); //TODO once i figure out why isPlaying seems to not refresh properly
             case 1 -> this.setSongVolume(100);      //Vol MAX Packet
             case -1 -> this.setSongVolume(0);       //Vol ZERO Packet
             case 2 -> this.setLoopBool(true);       //Loop ON Packet
@@ -1320,6 +1321,20 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         buf.writeBoolean(getLoopBool()); //Loop
         buf.writeBoolean(getAlertBool()); //Alerts
          */
+    }
+
+    //Forces the client to be in sync with the server. Prevents early song cancellation
+    @Environment(EnvType.CLIENT)
+    public void forceSync(ItemStack itemStack, String currentDisc) {
+
+        MusicDiscItem musicDisc = (MusicDiscItem) itemStack.getItem();
+
+        this.dataTracker.set(START_TICK, this.tickCount);
+        this.dataTracker.set(DISC_ITEMSTACK, itemStack);
+        this.dataTracker.set(CURRENT_DISC, currentDisc);
+        this.dataTracker.set(IS_PLAYING, true);
+        this.setSongEndTick(musicDisc); // Tells dataTracker the end tick.
+        this.currentSong = musicDisc.getSound();
     }
 
     public void debugPrintDataTrackedValues() {

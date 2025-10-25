@@ -10,7 +10,7 @@ import net.minecraft.util.math.random.Random;
 public class iDogMovingSoundInstance extends MovingSoundInstance {
     private iDogEntity iDog;
 
-    public iDogMovingSoundInstance(iDogEntity iDogPassed, SoundEvent sound, boolean loopBoolPassed, float volumePassed) {
+    public iDogMovingSoundInstance(iDogEntity iDogPassed, SoundEvent sound, float volumePassed) {
         super(sound, SoundCategory.RECORDS, SoundInstance.createRandom());
         this.iDog = iDogPassed;
         this.repeat = false;

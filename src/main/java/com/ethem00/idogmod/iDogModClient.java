@@ -19,6 +19,7 @@ import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.MusicDiscItem;
 import net.minecraft.registry.Registries;
 import net.minecraft.sound.SoundEvent;
@@ -50,6 +51,7 @@ public class iDogModClient implements ClientModInitializer {
                 (client, handler, buf, responseSender)-> {
             int entityId = buf.readInt();
             Identifier discId = buf.readIdentifier();
+            String discString = buf.readString();
 
                     //System.out.println("Recieved from: " + entityId);
 
@@ -63,12 +65,16 @@ public class iDogModClient implements ClientModInitializer {
                         Item item = Registries.ITEM.get(discId);
                         //System.out.println("Entity is iDog");
 
-                        //TODO: Instance is no longer accepting the loopBoolean. Looping is handled in the iDog's songDisplayLogic.
-                        // Trim the packet
+
                         if(item instanceof MusicDiscItem) {
                             //System.out.println("Item is of instance MusicDiscItem");
+
+                            //Tell the iDog to sync with server data
+                            ((iDogEntity) entity).forceSync(new ItemStack(item.asItem(), 1), discString);
+
+                            //Moving sound instance
                             SoundEvent sound = ((MusicDiscItem) item).getSound();
-                            MinecraftClient.getInstance().getSoundManager().play(new iDogMovingSoundInstance(((iDogEntity) entity), sound, ((iDogEntity) entity).getLoopBool(), ((iDogEntity) entity).getSongVolume(false)));
+                            MinecraftClient.getInstance().getSoundManager().play(new iDogMovingSoundInstance(((iDogEntity) entity), sound, ((iDogEntity) entity).getSongVolume(false)));
                         }
                     }
                 });
