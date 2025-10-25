@@ -25,7 +25,7 @@ public class ModLootTableModifiers {
                         .conditionally(RandomChanceLootCondition.builder(1f))
                         .with(ItemEntry.builder(ModItems.iDOG_BOX))
                         .with(ItemEntry.builder(ModItems.MUSIC_DISC_CALM4))
-                        .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(0.5F, 0.5F)).build());
+                        .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(0F, 0.5F)).build());
 
                 builder.pool(poolBuilder.build());
             }

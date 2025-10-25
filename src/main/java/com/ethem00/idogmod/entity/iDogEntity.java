@@ -805,7 +805,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
 
     public void setAlerting(boolean bool) {
         this.dataTracker.set(ALERTING, bool);
-        System.out.println("Alerting is now: " + bool);
+        //System.out.println("Alerting is now: " + bool);
     }
 
     public void stopPlayingRecord() {
@@ -899,7 +899,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
 
                 //TODO: Tell the client to set the current disc and itemStack. And set isPlaying to true.
             }
-            this.debugPrintDataTrackedValues();
+            //this.debugPrintDataTrackedValues();
             //this.currentSong = musicDisc.getSound();
             this.markDirty();
         } else {
@@ -1257,7 +1257,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
                 //System.out.println("Sound packet sent to Player: " + player + " from entity: " + this.getId() + " with disc ID of: " + Registries.ITEM.getId(musicDisc));
             });
 
-            System.out.println("Played " + alertType);
+            //System.out.println("Played " + alertType);
         }
     }
 
