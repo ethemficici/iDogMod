@@ -1026,7 +1026,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
 
     public void handleReceivedPacket(int type) {
         //Debug
-        System.out.println("iDog handling packet of: " + type);
+        //System.out.println("iDog handling packet of: " + type);
 
         switch(type) {
             case -100 -> this.setAlerting(false);
@@ -1300,6 +1300,13 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
 
     public Inventory getInventory() {
         return this;
+    }
+
+    @Override
+    public void onDeath(DamageSource damageSource) {
+        super.onDeath(damageSource);
+        this.dropStack(this.dataTracker.get(DISC_ITEMSTACK));
+        this.dropStack(new ItemStack(Items.IRON_INGOT, 1 + this.random.nextInt(3)));
     }
 
     @Override

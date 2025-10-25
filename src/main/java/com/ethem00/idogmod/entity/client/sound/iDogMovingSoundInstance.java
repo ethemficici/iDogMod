@@ -36,21 +36,18 @@ public class iDogMovingSoundInstance extends MovingSoundInstance {
         this.y = this.iDog.getY();
         this.z = this.iDog.getZ();
 
-        //TODO: INSTANT STOP IS HAPPENING AGAIN! FIGURE OUT WHY! Not clearing songEndTick?
         if(iDog.isRemoved()) {
             this.setDone();
             System.out.println("iDog song playback has stopped.");
             System.out.println("Due to iDog entity removal.");
             System.out.println("Volume was: " + volume);
         }
-        if(!iDog.isPlayingRecord()) { //TODO: Check if the player removed the disc.
+        if(!iDog.isPlayingRecord()) {
             this.setDone();
             System.out.println("iDog song playback has stopped.");
             System.out.println("Due to record removal.");
             System.out.println("Volume was: " + volume);
             //iDog.soundInstanceFinishedAlert(); //TODO: When teleporting
-            this.iDog.debugPrintDataTrackedValues();
-
         }
     }
 }
