@@ -2,8 +2,12 @@ package com.ethem00.idogmod;
 
 import com.ethem00.idogmod.entity.ModEntities;
 import com.ethem00.idogmod.entity.iDogEntity;
+import com.ethem00.idogmod.network.PlayAlertPayload;
+import com.ethem00.idogmod.network.PlayMusicPayload;
+import com.ethem00.idogmod.network.iDogOpenScreenPayload;
 import net.fabricmc.api.ModInitializer;
 
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
@@ -19,9 +23,6 @@ import static com.ethem00.idogmod.util.ModLootTableModifiers.modifyLootTables;
 // Rest in peace Tiger. Oct 24th 2025.
 public class iDogMod implements ModInitializer {
 	public static final String MOD_ID = "idogmod";
-    public static final Identifier PLAY_IDOG_MUSIC = new Identifier(iDogMod.MOD_ID, "play_idog_music");
-    public static final Identifier PLAY_IDOG_ALERT = new Identifier(iDogMod.MOD_ID, "play_idog_alert");
-
 
     // This logger is used to write text to the console and the log file.
 	// It is considered best practice to use your mod id as the logger's name.
@@ -38,10 +39,15 @@ public class iDogMod implements ModInitializer {
 
         registerModEntities();
         registerScreenHandlers();
-        registerC2SPackets();
         registerSounds();
         registerModItems();
         modifyLootTables();
+
+        //Network
+        registerC2SPackets();
+        PayloadTypeRegistry.playS2C().register(PlayMusicPayload.ID, PlayMusicPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(PlayAlertPayload.ID, PlayAlertPayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(iDogOpenScreenPayload.ID, iDogOpenScreenPayload.CODEC);
 
         FabricDefaultAttributeRegistry.register(ModEntities.IDOG, iDogEntity.createiDogAttributes());
 	}

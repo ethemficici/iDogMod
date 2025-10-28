@@ -105,11 +105,6 @@ public class iDogEntityModel<T extends iDogEntity> extends SinglePartEntityModel
         this.head.pitch = headPitch * (float) (Math.PI / 180.0);
     }
 
-	@Override
-	public void render(MatrixStack matrices, VertexConsumer vertexConsumer, int light, int overlay, float red, float green, float blue, float alpha) {
-        idog.render(matrices, vertexConsumer, light, overlay, red, green, blue, alpha);
-	}
-
     @Override
     public ModelPart getPart() {
         return idog;

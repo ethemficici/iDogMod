@@ -13,7 +13,7 @@ import net.minecraft.util.Identifier;
 public class ModLootTableModifiers {
 
     private static final Identifier DUNGEON_ID =
-            new Identifier("minecraft", "chests/simple_dungeon");
+            Identifier.of("minecraft", "chests/simple_dungeon");
 
     public static void modifyLootTables() {
         LootTableEvents.MODIFY.register((resourceManager, lootManager, identifier, builder, lootTableSource) -> {

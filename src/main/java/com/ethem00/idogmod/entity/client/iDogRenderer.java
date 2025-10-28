@@ -13,11 +13,11 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 
 public class iDogRenderer extends MobEntityRenderer<iDogEntity, iDogEntityModel<iDogEntity>> {
-    private static final Identifier BODY_TEXTURE = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/idog.png");
-    private static final Identifier BODY_TEXTURE_DAY = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/idog_day.png");
-    private static final Identifier BODY_TEXTURE_RED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/idog_red.png");
-    private static final Identifier BODY_TEXTURE_GREEN = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/idog_green.png");
-    private static final Identifier BODY_TEXTURE_BLUE = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/idog_blue.png");
+    private static final Identifier BODY_TEXTURE = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/idog.png");
+    private static final Identifier BODY_TEXTURE_DAY = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/idog_day.png");
+    private static final Identifier BODY_TEXTURE_RED = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/idog_red.png");
+    private static final Identifier BODY_TEXTURE_GREEN = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/idog_green.png");
+    private static final Identifier BODY_TEXTURE_BLUE = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/idog_blue.png");
     //Right click with target block to make a Target iDog?
 
 

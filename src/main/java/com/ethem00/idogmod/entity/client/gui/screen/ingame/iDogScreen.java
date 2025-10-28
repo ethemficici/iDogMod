@@ -3,6 +3,7 @@ package com.ethem00.idogmod.entity.client.gui.screen.ingame;
 import com.ethem00.idogmod.entity.iDogEntity;
 import com.ethem00.idogmod.iDogMod;
 import com.ethem00.idogmod.network.ModPackets;
+import com.ethem00.idogmod.network.iDogButtonPayload;
 import com.ethem00.idogmod.screen.iDogScreenHandler;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -10,24 +11,20 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.ingame.BeaconScreen;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.client.gui.widget.PressableWidget;
-import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.MusicDiscItem;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.sound.SoundEvents;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraft.world.World;
 
 @Environment(EnvType.CLIENT)
 public class iDogScreen extends HandledScreen<iDogScreenHandler> {
-    private static final Identifier SCREEN_TEXTURE = new Identifier(iDogMod.MOD_ID, "textures/gui/container/idog_screen.png");
+    private static final Identifier SCREEN_TEXTURE = Identifier.of(iDogMod.MOD_ID, "textures/gui/container/idog_screen.png");
     private final iDogEntity idog;
     private float mouseX;
     private float mouseY;
@@ -48,7 +45,8 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
         context.drawTexture(SCREEN_TEXTURE, i, j, 0, 0, this.backgroundWidth, this.backgroundHeight);
 
 
-        InventoryScreen.drawEntity(context, i + 124, j + 114, 24, i + 51 - this.mouseX, j + 75 - 50 - this.mouseY, this.idog);
+        //TODO: Check if im going insane or if i can just pass the same value twice and have the same outcome as 1.20.1
+        InventoryScreen.drawEntity(context, i + 124, j + 114, i + 124, j + 114, 24, 0.25F, this.mouseX, this.mouseY, this.idog);
 
         float m = this.idog.getSongVolume(true);
         if (m > 0) { //Draw volume meter with speaker unmuted
@@ -71,7 +69,7 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.renderBackground(context);
+        this.renderBackground(context, mouseX, mouseY, delta);
         this.mouseX = mouseX;
         this.mouseY = mouseY;
         super.render(context, mouseX, mouseY, delta);
@@ -103,13 +101,13 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
     private void sendButtonPacket(int packetType) {
         if (this.client == null || this.idog == null) return;
 
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeInt(this.idog.getId());   // Send the iDog entity ID
-        buf.writeInt(packetType);          // Send the type (-10, +10, etc.)
+        int id = (this.idog.getId());   // Send the iDog entity ID
+        // Send the type (-10, +10, etc.)
+        RegistryKey<World> worldKey = this.idog.getWorld().getRegistryKey();
 
         //System.out.println("Packet of " + packetType + " being sent by entity " + this.idog.getId());
 
-        ClientPlayNetworking.send(ModPackets.IDOG_BUTTON_PACKET, buf);
+        ClientPlayNetworking.send(new iDogButtonPayload(id, packetType, worldKey));
     }
 
     //Buttons and widgets
@@ -142,10 +140,10 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
         }
 
         @Override
-        public void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
+        public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
             // Draws a section of the GUI texture instead of a button texture
 
-            if(screen.idog.getDiscAsItem() instanceof MusicDiscItem) {
+            if(screen.idog.getDiscAsItem() != null) {
                 if(this.waitTime >= 10) { //On
                     context.drawTexture(SCREEN_TEXTURE, this.getX(), this.getY(), u, v, width, height);
                 } else { //Off
@@ -160,7 +158,7 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
         public void onClick(double mouseX, double mouseY) {
             this.waitTime = 0;
 
-            if(screen.idog.getDiscAsItem() instanceof MusicDiscItem) {
+            if(screen.idog.getDiscAsItem() != null) {
                 this.playDownSound(MinecraftClient.getInstance().getSoundManager());
                 screen.typeBasedPacketSwitch(type);
             }
@@ -191,7 +189,7 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
         }
 
         @Override
-        public void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
+        public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
             // Draws a section of the GUI texture instead of a button texture
             if(this.waitTime >= 10) { //On
                 if(screen.idog.getSongVolume(true) > 0) {
@@ -221,7 +219,7 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
         }
 
         @Override
-        public void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
+        public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
             // Draws a section of the GUI texture instead of a button texture
             if(this.waitTime >= 10) { //On
                 if(type > 0) {context.drawTexture(SCREEN_TEXTURE, this.getX(), this.getY(), u, v, width, height);}
@@ -259,7 +257,7 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
         }
 
         @Override
-        public void renderButton(DrawContext context, int mouseX, int mouseY, float delta) {
+        protected void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
             // Draws a section of the GUI texture instead of a button texture
             if(this.waitTime >= 10) {
                 context.drawTexture(SCREEN_TEXTURE, this.getX(), this.getY(), u, v, width, height);

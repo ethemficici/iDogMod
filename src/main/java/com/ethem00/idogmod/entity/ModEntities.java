@@ -12,7 +12,7 @@ import net.minecraft.util.Identifier;
 public class ModEntities {
 
     public static final EntityType<iDogEntity> IDOG = Registry.register(Registries.ENTITY_TYPE,
-            new Identifier(iDogMod.MOD_ID, "idog"),
+            Identifier.of(iDogMod.MOD_ID, "idog"),
             FabricEntityTypeBuilder.create(SpawnGroup.CREATURE, iDogEntity::new).dimensions(EntityDimensions.fixed(0.75f, 0.95f)).trackRangeBlocks(32).build());
 
     public static void registerModEntities() {

@@ -11,7 +11,7 @@ import net.minecraft.util.Identifier;
 
 public class ModScreenHandlers {
     public static final ScreenHandlerType<iDogScreenHandler> IDOG_SCREEN_HANDLER =
-            Registry.register(Registries.SCREEN_HANDLER, new Identifier(iDogMod.MOD_ID, "idog"),
+            Registry.register(Registries.SCREEN_HANDLER, Identifier.of(iDogMod.MOD_ID, "idog"),
                     new ExtendedScreenHandlerType<>((syncId, inventory, buf) -> {
 
                         //Byte Buffer

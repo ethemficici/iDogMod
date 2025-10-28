@@ -19,10 +19,10 @@ import static org.apache.commons.lang3.RandomUtils.nextInt;
 
 @Environment(EnvType.CLIENT)
 public class iDogBatteryFeatureRenderer<T extends iDogEntity, M extends iDogEntityModel<T>> extends EyesFeatureRenderer<T, M> {
-    private static final RenderLayer BATTERY_100 = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/battery/idog_battery_100.png"));
-    private static final RenderLayer BATTERY_75 = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/battery/idog_battery_75.png"));
-    private static final RenderLayer BATTERY_50 = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/battery/idog_battery_50.png"));
-    private static final RenderLayer BATTERY_25 = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/battery/idog_battery_25.png"));
+    private static final RenderLayer BATTERY_100 = RenderLayer.getEyes(Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/battery/idog_battery_100.png"));
+    private static final RenderLayer BATTERY_75 = RenderLayer.getEyes(Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/battery/idog_battery_75.png"));
+    private static final RenderLayer BATTERY_50 = RenderLayer.getEyes(Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/battery/idog_battery_50.png"));
+    private static final RenderLayer BATTERY_25 = RenderLayer.getEyes(Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/battery/idog_battery_25.png"));
 
     public iDogBatteryFeatureRenderer(FeatureRendererContext<T, M> featureRendererContext) {
         super(featureRendererContext);
@@ -56,6 +56,6 @@ public class iDogBatteryFeatureRenderer<T extends iDogEntity, M extends iDogEnti
             float animationProgress, float headYaw, float headPitch) {
 
         VertexConsumer batteryVertexConsumer = vertexConsumers.getBuffer(this.getBatteryTexture(idogEntity.getHealth(), idogEntity.isTamed()));
-        this.getContextModel().render(matrices, batteryVertexConsumer, 15728640, OverlayTexture.DEFAULT_UV, 1.0F, 1.0F, 1.0F, 1.0F);
+        this.getContextModel().render(matrices, batteryVertexConsumer, 15728640, OverlayTexture.DEFAULT_UV);
     }
 }

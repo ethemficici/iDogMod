@@ -1,14 +1,14 @@
 package com.ethem00.idogmod.entity.client.sound;
 
 import com.ethem00.idogmod.entity.iDogEntity;
-import com.ethem00.idogmod.network.ModPackets;
+import com.ethem00.idogmod.network.FinishedAlertPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.minecraft.client.sound.MovingSoundInstance;
 import net.minecraft.client.sound.SoundInstance;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
+import net.minecraft.world.World;
 
 public class iDogMovingAlertInstance extends MovingSoundInstance {
     private iDogEntity iDog;
@@ -73,11 +73,11 @@ public class iDogMovingAlertInstance extends MovingSoundInstance {
     private void packetSender() {
         if (this.iDog == null) return;
 
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeInt(this.iDog.getId());   // Send the iDog entity ID
-        buf.writeBoolean(true);      // Send the boolean as true, so server knows the alert has ended.
+        int id = (this.iDog.getId());   // Send the iDog entity ID
 
         System.out.println("Packet of TRUE being sent by entity " + this.iDog.getId());
-        ClientPlayNetworking.send(ModPackets.IDOG_ALERT_PACKET, buf);
+
+        RegistryKey<World> worldKey = this.iDog.getWorld().getRegistryKey();
+        ClientPlayNetworking.send(new FinishedAlertPayload(id, worldKey));
     }
 }

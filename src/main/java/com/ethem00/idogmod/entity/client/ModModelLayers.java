@@ -6,6 +6,6 @@ import net.minecraft.util.Identifier;
 
 public class ModModelLayers {
     public static final EntityModelLayer IDOG =
-            new EntityModelLayer(new Identifier(iDogMod.MOD_ID, "idog"), "main");
+            new EntityModelLayer(Identifier.of(iDogMod.MOD_ID, "idog"), "main");
 }
 

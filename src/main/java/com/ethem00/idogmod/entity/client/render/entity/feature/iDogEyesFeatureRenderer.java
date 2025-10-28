@@ -12,6 +12,7 @@ import net.minecraft.client.render.entity.feature.EyesFeatureRenderer;
 import net.minecraft.client.render.entity.feature.FeatureRendererContext;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.ColorHelper;
 
 /**
  * Eye interpolation and easing logic handled in {@link iDogEntity#songDisplayLogic()}
@@ -27,7 +28,7 @@ import net.minecraft.util.Identifier;
 
 @Environment(EnvType.CLIENT)
 public class iDogEyesFeatureRenderer<T extends iDogEntity, M extends iDogEntityModel<T>> extends EyesFeatureRenderer<T, M> implements iDogEyeVariants {
-    private static final RenderLayer DEFAULT_EYES_RENDERLAYER = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_5.png"));
+    private static final RenderLayer DEFAULT_EYES_RENDERLAYER = RenderLayer.getEyes(Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/idog_eyes_5.png"));
 
     public iDogEyesFeatureRenderer(FeatureRendererContext<T, M> featureRendererContext) {
         super(featureRendererContext);
@@ -86,8 +87,15 @@ public class iDogEyesFeatureRenderer<T extends iDogEntity, M extends iDogEntityM
                        T iDog, float limbAngle, float limbDistance, float tickDelta,
                        float animationProgress, float headYaw, float headPitch) {
 
+
+        //Color is now ARGB, passed as int
+        int color = ColorHelper.Argb.getArgb(
+                (int)(iDog.getEyeAlpha() * 255), // alpha
+                255, 255, 255                    // RGB
+        );
+
         VertexConsumer eyeVertexConsumer = vertexConsumers.getBuffer(RenderLayer.getEntityTranslucentEmissive(getEyesIdentifier(iDog.getCurrentDisc(), iDog.getEyeVariant()), false));
 
-        this.getContextModel().render(matrices, eyeVertexConsumer, 15728640, OverlayTexture.DEFAULT_UV, 1.0F, 1.0F, 1.0F, iDog.getEyeAlpha());
+        this.getContextModel().render(matrices, eyeVertexConsumer, 15728640, OverlayTexture.DEFAULT_UV, color);
     }
 }

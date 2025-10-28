@@ -27,65 +27,65 @@ import static org.apache.commons.lang3.RandomUtils.nextInt;
 
 @Environment(EnvType.CLIENT)
 public class iDogLidFeatureRenderer<T extends iDogEntity, M extends iDogEntityModel<T>> extends EyesFeatureRenderer<T, M> {
-    private static final RenderLayer COVER_NONE_RENDERLAYER = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_none.png"));
+    private static final RenderLayer COVER_NONE_RENDERLAYER = RenderLayer.getEyes(Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_none.png"));
     //Render layer!
-    private static final Identifier COVER_MISSING_NUMBER = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_missing_number.png");
+    private static final Identifier COVER_MISSING_NUMBER = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_missing_number.png");
 
-    private static final Identifier COVER_INVERTED_CENTER = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_center.png");
-    private static final Identifier COVER_NONE = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_none.png");
-    private static final Identifier COVER_ALL = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_all.png");
-    private static final Identifier COVER_CENTER = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_center.png");
+    private static final Identifier COVER_INVERTED_CENTER = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_center.png");
+    private static final Identifier COVER_NONE = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_none.png");
+    private static final Identifier COVER_ALL = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_all.png");
+    private static final Identifier COVER_CENTER = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_center.png");
 
-    private static final Identifier COVER_3 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_3.png");
-    private static final Identifier COVER_4 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_4.png");
-    private static final Identifier COVER_5 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_5.png");
-    private static final Identifier COVER_6 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_6.png");
-    private static final Identifier COVER_7 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_7.png");
-    private static final Identifier COVER_8 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_8.png");
+    private static final Identifier COVER_3 = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_3.png");
+    private static final Identifier COVER_4 = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_4.png");
+    private static final Identifier COVER_5 = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_5.png");
+    private static final Identifier COVER_6 = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_6.png");
+    private static final Identifier COVER_7 = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_7.png");
+    private static final Identifier COVER_8 = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_8.png");
 
-    private static final Identifier COVER_3_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_3.png");
-    private static final Identifier COVER_4_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_4.png");
-    private static final Identifier COVER_5_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_5.png");
-    private static final Identifier COVER_6_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_6.png");
-    private static final Identifier COVER_7_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_7.png");
-    private static final Identifier COVER_8_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_8.png");
+    private static final Identifier COVER_3_INVERTED = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_3.png");
+    private static final Identifier COVER_4_INVERTED = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_4.png");
+    private static final Identifier COVER_5_INVERTED = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_5.png");
+    private static final Identifier COVER_6_INVERTED = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_6.png");
+    private static final Identifier COVER_7_INVERTED = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_7.png");
+    private static final Identifier COVER_8_INVERTED = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_8.png");
 
-    private static final Identifier COVER_TOP = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_top.png");
-    private static final Identifier COVER_BOTTOM = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_bottom.png");
-    private static final Identifier COVER_TOP_CENTER = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_top_center.png");
-    private static final Identifier COVER_BOTTOM_CENTER = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_bottom_center.png");
+    private static final Identifier COVER_TOP = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_top.png");
+    private static final Identifier COVER_BOTTOM = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_bottom.png");
+    private static final Identifier COVER_TOP_CENTER = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_top_center.png");
+    private static final Identifier COVER_BOTTOM_CENTER = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_bottom_center.png");
 
-    private static final Identifier COVER_40 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_40.png");
-    private static final Identifier COVER_407 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_407.png");
-    private static final Identifier COVER_70 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_70.png");
-    private static final Identifier COVER_407_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_407_inverted.png");
+    private static final Identifier COVER_40 = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_40.png");
+    private static final Identifier COVER_407 = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_407.png");
+    private static final Identifier COVER_70 = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_70.png");
+    private static final Identifier COVER_407_INVERTED = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_407_inverted.png");
 
-    private static final Identifier COVER_TRI_LEFT_DOWN = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_left_down.png");
-    private static final Identifier COVER_TRI_LEFT = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_left.png");
-    private static final Identifier COVER_TRI_LEFT_UP = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_left_up.png");
-    private static final Identifier COVER_TRI_RIGHT_DOWN = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_right_down.png");
-    private static final Identifier COVER_TRI_RIGHT = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_right.png");
-    private static final Identifier COVER_TRI_RIGHT_UP = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_right_up.png");
+    private static final Identifier COVER_TRI_LEFT_DOWN = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_left_down.png");
+    private static final Identifier COVER_TRI_LEFT = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_left.png");
+    private static final Identifier COVER_TRI_LEFT_UP = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_left_up.png");
+    private static final Identifier COVER_TRI_RIGHT_DOWN = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_right_down.png");
+    private static final Identifier COVER_TRI_RIGHT = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_right.png");
+    private static final Identifier COVER_TRI_RIGHT_UP = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_right_up.png");
 
-    private static final Identifier COVER_INVERTED_TRI_LEFT_DOWN = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_left_down.png");
-    private static final Identifier COVER_INVERTED_TRI_LEFT = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_left.png");
-    private static final Identifier COVER_INVERTED_TRI_LEFT_UP = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_left_up.png");
-    private static final Identifier COVER_INVERTED_TRI_RIGHT_DOWN = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_right_down.png");
-    private static final Identifier COVER_INVERTED_TRI_RIGHT = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_right.png");
-    private static final Identifier COVER_INVERTED_TRI_RIGHT_UP = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_right_up.png");
+    private static final Identifier COVER_INVERTED_TRI_LEFT_DOWN = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_left_down.png");
+    private static final Identifier COVER_INVERTED_TRI_LEFT = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_left.png");
+    private static final Identifier COVER_INVERTED_TRI_LEFT_UP = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_left_up.png");
+    private static final Identifier COVER_INVERTED_TRI_RIGHT_DOWN = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_right_down.png");
+    private static final Identifier COVER_INVERTED_TRI_RIGHT = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_right.png");
+    private static final Identifier COVER_INVERTED_TRI_RIGHT_UP = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_right_up.png");
 
-    private static final Identifier COVER_TWIST1 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_1.png");
-    private static final Identifier COVER_TWIST2 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_2.png");
-    private static final Identifier COVER_TWIST3 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_3.png");
-    private static final Identifier COVER_TWIST1_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_1_inverted.png");
-    private static final Identifier COVER_TWIST2_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_2_inverted.png");
-    private static final Identifier COVER_TWIST3_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_3_inverted.png");
+    private static final Identifier COVER_TWIST1 = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_1.png");
+    private static final Identifier COVER_TWIST2 = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_2.png");
+    private static final Identifier COVER_TWIST3 = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_3.png");
+    private static final Identifier COVER_TWIST1_INVERTED = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_1_inverted.png");
+    private static final Identifier COVER_TWIST2_INVERTED = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_2_inverted.png");
+    private static final Identifier COVER_TWIST3_INVERTED = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_3_inverted.png");
 
     //Threes
-    private static final Identifier COVER_345 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_345.png");
-    private static final Identifier COVER_345_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_345_inverted.png");
-    private static final Identifier COVER_678 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_678.png");
-    private static final Identifier COVER_678_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_678_inverted.png");
+    private static final Identifier COVER_345 = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_345.png");
+    private static final Identifier COVER_345_INVERTED = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_345_inverted.png");
+    private static final Identifier COVER_678 = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_678.png");
+    private static final Identifier COVER_678_INVERTED = Identifier.of(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_678_inverted.png");
 
 
     public iDogLidFeatureRenderer(FeatureRendererContext<T, M> featureRendererContext) {
@@ -173,6 +173,6 @@ public class iDogLidFeatureRenderer<T extends iDogEntity, M extends iDogEntityMo
             float animationProgress, float headYaw, float headPitch) {
 
         VertexConsumer eyeVertexConsumerThree = vertexConsumers.getBuffer(RenderLayer.getArmorCutoutNoCull(getCoverTexture(idogEntity.getEyeCover())));
-        this.getContextModel().render(matrices, eyeVertexConsumerThree, light, OverlayTexture.DEFAULT_UV, 1.0F, 1.0F, 1.0F, 1.0F);
+        this.getContextModel().render(matrices, eyeVertexConsumerThree, light, OverlayTexture.DEFAULT_UV);
     }
 }
