@@ -12,22 +12,23 @@ import net.minecraft.util.Identifier;
 
 public class ModLootTableModifiers {
 
+
     private static final Identifier DUNGEON_ID =
             Identifier.of("minecraft", "chests/simple_dungeon");
 
     public static void modifyLootTables() {
-        LootTableEvents.MODIFY.register((resourceManager, lootManager, identifier, builder, lootTableSource) -> {
+        LootTableEvents.MODIFY.register((key, tableBuilder, source) -> {
 
-            if(DUNGEON_ID.equals(identifier)) {
+            if(DUNGEON_ID.equals(key.getValue())) {
 
                 LootPool.Builder poolBuilder = LootPool.builder()
                         .rolls(ConstantLootNumberProvider.create(1))
-                        .conditionally(RandomChanceLootCondition.builder(1f))
+                        .conditionally(RandomChanceLootCondition.builder(0.25f))
                         .with(ItemEntry.builder(ModItems.iDOG_BOX))
                         .with(ItemEntry.builder(ModItems.MUSIC_DISC_CALM4))
-                        .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(0F, 0.5F)).build());
+                        .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(0F, 1F)).build());
 
-                builder.pool(poolBuilder.build());
+                tableBuilder.pool(poolBuilder.build());
             }
         });
     }

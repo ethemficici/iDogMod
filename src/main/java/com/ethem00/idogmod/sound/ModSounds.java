@@ -1,8 +1,8 @@
 package com.ethem00.idogmod.sound;
 
 import com.ethem00.idogmod.iDogMod;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
+import net.minecraft.block.jukebox.JukeboxSong;
+import net.minecraft.registry.*;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Identifier;
 
@@ -10,6 +10,7 @@ public class ModSounds {
 
     //CALM4
     public static final SoundEvent MUSIC_DISC_CALM4 = registerSoundEvent("music_disc.calm4");
+    public static final RegistryKey<JukeboxSong> CALM4 = RegistryKey.of(RegistryKeys.JUKEBOX_SONG, Identifier.of(iDogMod.MOD_ID, "calm4"));
 
     //BOX OPEN
     public static final SoundEvent ITEM_IDOG_BOX_OPEN = registerSoundEvent("item_idog_box_open");

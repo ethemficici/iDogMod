@@ -47,7 +47,9 @@ public class iDogMovingSoundInstance extends MovingSoundInstance {
             System.out.println("iDog song playback has stopped.");
             System.out.println("Due to record removal.");
             System.out.println("Volume was: " + volume);
-            //iDog.soundInstanceFinishedAlert(); //TODO: When teleporting
+            //iDog.soundInstanceFinishedAlert();
+            //TODO: Does the datatracker wipe certain values when teleporting?
+            // Something is getting lost. Maybe instead of sending a packet, we can prevent it from stopping at all.
         }
     }
 }

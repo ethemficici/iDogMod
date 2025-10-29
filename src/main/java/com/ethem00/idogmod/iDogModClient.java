@@ -83,7 +83,7 @@ public class iDogModClient implements ClientModInitializer {
                             //System.out.println("Entity is iDog");
 
 
-                            if (item.isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("minecraft", "music_discs")))) {
+                            if (item.isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("c", "music_discs")))) {
                                 //System.out.println("Item is of instance MusicDiscItem");
 
                                 //Tell the iDog to sync with server data
@@ -92,6 +92,7 @@ public class iDogModClient implements ClientModInitializer {
                                 //Moving sound instance
                                 SoundEvent sound = Registries.SOUND_EVENT.get(songID);
                                 //Needs a sound event, maybe I can send an identifier for one inside the packet?
+                                //System.out.println("IM PLAYING A SONGE");
 
                                 MinecraftClient.getInstance().getSoundManager().play(new iDogMovingSoundInstance(((iDogEntity) entity), sound, ((iDogEntity) entity).getSongVolume(false)));
                             }

@@ -57,11 +57,14 @@ public class iDogEyesFeatureRenderer<T extends iDogEntity, M extends iDogEntityM
             case "music_disc_blocks" -> (compareInteger(variant, music_disc_blocks_variants.length-1)) ? music_disc_blocks_variants[0] : music_disc_blocks_variants[variant];
             case "music_disc_cat" -> (compareInteger(variant, music_disc_cat_variants.length-1)) ? music_disc_cat_variants[0] : music_disc_cat_variants[variant];
             case "music_disc_chirp" -> (compareInteger(variant, music_disc_chirp_variants.length-1)) ? music_disc_chirp_variants[0] : music_disc_chirp_variants[variant];
+            case "music_disc_creator" -> (compareInteger(variant, music_disc_creator_variants.length-1)) ? music_disc_creator_variants[0] : music_disc_creator_variants[variant];
+            case "music_disc_creator_music_box" -> (compareInteger(variant, music_disc_creator_music_box_variants.length-1)) ? music_disc_creator_music_box_variants[0] : music_disc_creator_music_box_variants[variant];
             case "music_disc_far" -> (compareInteger(variant, music_disc_far_variants.length-1)) ? music_disc_far_variants[0] : music_disc_far_variants[variant];
             case "music_disc_mall" -> (compareInteger(variant, music_disc_mall_variants.length-1)) ? music_disc_mall_variants[0] : music_disc_mall_variants[variant];
             case "music_disc_mellohi" -> (compareInteger(variant, music_disc_mellohi_variants.length-1)) ? music_disc_mellohi_variants[0] : music_disc_mellohi_variants[variant];
             case "music_disc_otherside" -> (compareInteger(variant, music_disc_otherside_variants.length-1)) ? music_disc_otherside_variants[0] : music_disc_otherside_variants[variant];
             case "music_disc_pigstep" -> (compareInteger(variant, music_disc_pigstep_variants.length-1)) ? music_disc_pigstep_variants[0] : music_disc_pigstep_variants[variant];
+            case "music_disc_precipice" -> (compareInteger(variant, music_disc_precipice_variants.length-1)) ? music_disc_precipice_variants[0] : music_disc_precipice_variants[variant];
             case "music_disc_relic" -> (compareInteger(variant, music_disc_relic_variants.length-1)) ? music_disc_relic_variants[0] : music_disc_relic_variants[variant];
             case "music_disc_stal" -> (compareInteger(variant, music_disc_stal_variants.length-1)) ? music_disc_stal_variants[0] : music_disc_stal_variants[variant];
             case "music_disc_strad" -> (compareInteger(variant, music_disc_strad_variants.length-1)) ? music_disc_strad_variants[0] : music_disc_strad_variants[variant];
@@ -74,6 +77,8 @@ public class iDogEyesFeatureRenderer<T extends iDogEntity, M extends iDogEntityM
             case "music_disc_blue" -> (compareInteger(variant, music_disc_randomBlue_variants.length-1)) ? music_disc_randomBlue_variants[0] : music_disc_randomBlue_variants[variant];
             case "music_disc_rainbow" -> (compareInteger(variant, music_disc_randomRainbow_variants.length-1)) ? music_disc_randomRainbow_variants[0] : music_disc_randomRainbow_variants[variant];
             case "music_disc_creeper" -> (compareInteger(variant, music_disc_randomCreeper_variants.length-1)) ? music_disc_randomCreeper_variants[0] : music_disc_randomCreeper_variants[variant];
+            case "music_disc_ender" -> (compareInteger(variant, music_disc_randomEnder_variants.length-1)) ? music_disc_randomEnder_variants[0] : music_disc_randomEnder_variants[variant];
+            case "music_disc_berries" -> (compareInteger(variant, music_disc_randomBerries_variants.length-1)) ? music_disc_randomBerries_variants[0] : music_disc_randomBerries_variants[variant];
             default -> music_disc_default_variants[0];
         };
     }

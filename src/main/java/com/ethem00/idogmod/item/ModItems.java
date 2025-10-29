@@ -12,7 +12,7 @@ import net.minecraft.util.Rarity;
 
 public class ModItems {
 
-    //public static final Item MUSIC_DISC_CALM4 = registerItemMethod("music_disc_calm4", new MusicDiscItem(4, ModSounds.MUSIC_DISC_CALM4, new Item.Settings().maxCount(1), 190));
+    public static final Item MUSIC_DISC_CALM4 = registerItemMethod("music_disc_calm4", new Item(new Item.Settings().rarity(Rarity.RARE).maxCount(1).jukeboxPlayable(ModSounds.CALM4)));
     public static final Item iDOG_BOX = registerItemMethod("idog_box", new iDogBoxItem(ModEntities.IDOG, 0, 0, new Item.Settings().maxCount(1).rarity(Rarity.RARE)));
 
     private static Item registerItemMethod(String name, Item item) {
@@ -23,7 +23,7 @@ public class ModItems {
         iDogMod.LOGGER.info("Registering modded items from " + iDogMod.MOD_ID);
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(entries -> {
-            //entries.addAfter(Items.MUSIC_DISC_RELIC, MUSIC_DISC_CALM4);
+            entries.addAfter(Items.MUSIC_DISC_RELIC, MUSIC_DISC_CALM4);
         });
 
         ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(entries -> {

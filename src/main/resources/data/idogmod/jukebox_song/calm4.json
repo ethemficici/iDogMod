@@ -1,0 +1,8 @@
+{
+  "comparator_output": 15,
+  "description": {
+    "translate": "item.idogmod.music_disc_calm4.desc"
+  },
+  "length_in_seconds": 190,
+  "sound_event": "idogmod:music_disc.calm4"
+}

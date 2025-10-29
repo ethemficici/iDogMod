@@ -19,6 +19,7 @@ import static com.ethem00.idogmod.network.ModPackets.registerC2SPackets;
 import static com.ethem00.idogmod.screen.ModScreenHandlers.registerScreenHandlers;
 import static com.ethem00.idogmod.sound.ModSounds.registerSounds;
 import static com.ethem00.idogmod.util.ModLootTableModifiers.modifyLootTables;
+//import static com.ethem00.idogmod.util.ModLootTableModifiers.modifyLootTables;
 
 // Rest in peace Tiger. Oct 24th 2025.
 public class iDogMod implements ModInitializer {

@@ -136,7 +136,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         this.goalSelector.add(2, new SitGoal(this));
         this.goalSelector.add(4, new PounceAtTargetGoal(this, 0.4F));
         this.goalSelector.add(5, new MeleeAttackGoal(this, 1.0, true));
-        this.goalSelector.add(6, new FollowOwnerGoal(this, 1.0, 2.0F, 10.0F));
+        this.goalSelector.add(6, new FollowOwnerGoal(this, 1.0, 10.0F, 2.0F));
         this.goalSelector.add(7, new AnimalMateGoal(this, 1.0));
         this.goalSelector.add(7, new iDogAlertsGoal(this, 16));
         this.goalSelector.add(8, new WanderAroundFarGoal(this, 1.0));
@@ -496,11 +496,14 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
             case "music_disc_blocks" -> this.random.nextInt(music_disc_blocks_variants.length-1);
             case "music_disc_cat" -> this.random.nextInt(music_disc_cat_variants.length-1);
             case "music_disc_chirp" -> this.random.nextInt(music_disc_chirp_variants.length-1);
+            case "music_disc_creator" -> this.random.nextInt(music_disc_creator_variants.length-1);
+            case "music_disc_creator_music_box" -> this.random.nextInt(music_disc_creator_music_box_variants.length-1);
             case "music_disc_far" -> this.random.nextInt(music_disc_far_variants.length-1);
             case "music_disc_mall" -> this.random.nextInt(music_disc_mall_variants.length-1);
             case "music_disc_mellohi" -> this.random.nextInt(music_disc_mellohi_variants.length-1);
             case "music_disc_otherside" -> this.random.nextInt(music_disc_otherside_variants.length-1);
             case "music_disc_pigstep" -> this.random.nextInt(music_disc_pigstep_variants.length-1);
+            case "music_disc_precipice" -> this.random.nextInt(music_disc_precipice_variants.length-1);
             case "music_disc_relic" -> this.random.nextInt(music_disc_relic_variants.length-1);
             case "music_disc_stal" -> this.random.nextInt(music_disc_stal_variants.length-1);
             case "music_disc_strad" -> this.random.nextInt(music_disc_strad_variants.length-1);
@@ -513,13 +516,17 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
             case "music_disc_blue" -> this.random.nextInt(music_disc_randomBlue_variants.length-1);
             case "music_disc_rainbow" -> this.random.nextInt(music_disc_randomRainbow_variants.length-1);
             case "music_disc_creeper" -> this.random.nextInt(music_disc_randomCreeper_variants.length-1);
-            default -> { int rand = this.random.nextInt(5);
+            case "music_disc_ender" -> this.random.nextInt(music_disc_randomEnder_variants.length-1);
+            case "music_disc_berries" -> this.random.nextInt(music_disc_randomBerries_variants.length-1);
+            default -> { int rand = this.random.nextInt(7);
                 switch (rand) {
                     case 0 -> setCurrentDisc("music_disc_red");
                     case 1 -> setCurrentDisc("music_disc_green");
                     case 2 -> setCurrentDisc("music_disc_blue");
                     case 3 -> setCurrentDisc("music_disc_rainbow");
-                    case 4 -> setCurrentDisc("music_disc_creeper"); //If you add more later, don't forget the bounds!
+                    case 4 -> setCurrentDisc("music_disc_creeper");
+                    case 5 -> setCurrentDisc("music_disc_berries");
+                    case 6 -> setCurrentDisc("music_disc_ender"); //If you add more later, don't forget the bounds!
                 }
                 yield getEyeVariantFromDisc(getCurrentDisc());
             }
@@ -594,11 +601,14 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
             case "music_disc_blocks" -> 85;
             case "music_disc_cat" -> 112;
             case "music_disc_chirp" -> 110;
+            case "music_disc_creator" -> 81;
+            case "music_disc_creator_music_box" -> 111;
             case "music_disc_far" -> 130;
             case "music_disc_mall" -> 115;
             case "music_disc_mellohi" -> 91;
             case "music_disc_otherside" -> 92;
             case "music_disc_pigstep" -> 113;
+            case "music_disc_precipice" -> 136;
             case "music_disc_relic" -> 136;
             case "music_disc_stal" -> 105;
             case "music_disc_strad" -> 188;
@@ -781,6 +791,14 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         this.dataTracker.set(CURRENT_DISC, discName);
     }
 
+    private void setCurrentDisc(ItemStack stack) {
+
+        Identifier id = Registries.ITEM.getId(stack.getItem());
+        String discName = id.getPath(); // just "music_disc_far"
+
+        this.dataTracker.set(CURRENT_DISC, discName);
+    }
+
     private void setLoopBool(boolean passedBool) {
         this.dataTracker.set(LOOP_BOOLEAN, passedBool);
     }
@@ -863,6 +881,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         if(!this.forceFreshTick) {
             this.forceFreshTick = true;
             this.dataTracker.set(START_TICK, this.tickCount);
+            this.currentSong = getSongFromStack(musicDiscStack);
 
             //System.out.println("Am I fresh? " + forceFreshTick);
 
@@ -891,7 +910,7 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
                 //System.out.println("Eye cover is: " + this.dataTracker.get(EYE_COVER));
             }
 
-            /* TODO: THIS MIGHT BE A SOLUTION TO IS_PLAYING MISMATCH
+            /*
             boolean serverBool;
             boolean clientBool;
 
@@ -987,14 +1006,13 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
 
         RegistryWrapper.WrapperLookup lookup = getWorld().getRegistryManager();
 
-
-        SoundEvent sound;
-
         // Try to resolve the JukeboxSong from the registry
         Optional<RegistryEntry<JukeboxSong>> entryOpt = playable.song().getEntry(lookup);
         if (entryOpt.isEmpty()) return null;
 
         JukeboxSong song = entryOpt.get().value();
+
+        //System.out.println(song.soundEvent().value() );
 
         return song.soundEvent().value();
     }
@@ -1012,14 +1030,18 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         return 1;
     }
 
+    public ItemStack getTrackedStack() {
+        return this.dataTracker.get(DISC_ITEMSTACK);
+    }
+
     @Override
     public ItemStack getStack() {
-        return null;
+        return this.inventory.get(0);
     }
 
     @Override
     public void setStack(ItemStack itemStack) {
-
+        this.setStack(0, itemStack);
     }
 
     @Override
@@ -1028,17 +1050,15 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     }
 
     public Item getDiscAsItem() {
-
         return dataTracker.get(DISC_ITEMSTACK).getItem();
     }
 
     @Override
     public void setStack(int slot, ItemStack stack) {
-
         if (isMusicDisc(stack)) {
             this.inventory.set(0, stack);
             this.dataTracker.set(DISC_ITEMSTACK, stack);
-            this.setCurrentDisc(stack.getItem().toString());
+            this.setCurrentDisc(stack);
             //Debug
             //System.out.println("iDog is now playing: " + getCurrentDisc());
             this.startPlaying(stack);
@@ -1065,7 +1085,10 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     }
 
     public boolean isMusicDisc(ItemStack musicDisc) {
-        return musicDisc.isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("minecraft", "music_discs")));
+        //System.out.println("----------------------");
+        //System.out.println(Registries.ITEM.getEntry(musicDisc.getItem()).streamTags().toList());
+        //System.out.println("----------------------");
+        return musicDisc.isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("c", "music_discs")));
     }
 
     public void dropRecord() {
@@ -1110,7 +1133,6 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
     @Override
     public ActionResult interactMob(PlayerEntity player, Hand hand) {
 
-
         ItemStack itemStack = player.getStackInHand(hand);
 
             if (!this.isOwner(player) && !this.isTamed()) { // if player is not owner, it is not tamed,
@@ -1154,11 +1176,6 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
                             //
                             ServerWorld serverWorld = (ServerWorld) this.getWorld();
                             ServerPlayNetworking.send((ServerPlayerEntity)player, new iDogOpenScreenPayload(id));
-
-
-                            player.openHandledScreen(new SimpleNamedScreenHandlerFactory(
-                                    (syncId, inventory, playerEntity) -> new iDogScreenHandler(syncId, inventory, this, this),
-                                    Text.translatable("screen.idog.title"))); // this triggers createMenu() pass ID as int?
                             return ActionResult.SUCCESS;
                         }
 
@@ -1392,6 +1409,10 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         this.dataTracker.set(IS_PLAYING, true);
         this.setSongEndTick(itemStack); // Tells dataTracker the end tick.
         this.currentSong = getSongFromStack(itemStack);
+
+        //System.out.println("-----FORCESYNC-----");
+        //this.debugPrintDataTrackedValues();
+        //System.out.println("-----FORCESYNC-----");
     }
 
     public void debugPrintDataTrackedValues() {
@@ -1406,6 +1427,8 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         //System.out.println(this.dataTracker.get(BEGGING));
         //System.out.println(this.dataTracker.get(ALERTING));
 
+        System.out.println("Disc Itemstack: "+this.dataTracker.get(DISC_ITEMSTACK));
+        System.out.println("Current Disc: "+this.dataTracker.get(CURRENT_DISC));
         System.out.println("Start tick: "+this.dataTracker.get(START_TICK));
         System.out.println("End tick: "+this.dataTracker.get(SONG_END_TICK));
         //System.out.println(this.dataTracker.get(SONG_VOLUME));
@@ -1419,8 +1442,8 @@ public class iDogEntity extends TameableEntity implements Angerable, SingleStack
         System.out.println("Is playing?: "+this.dataTracker.get(IS_PLAYING));
         //System.out.println(this.dataTracker.get(EYE_VARIANT));
         //System.out.println(this.dataTracker.get(EYE_COVER));
-        //System.out.println(this.dataTracker.get(CURRENT_BPM));
-        //System.out.println(this.dataTracker.get(TICKS_PER_BEAT_CUMULATIVE));
+        System.out.println(this.dataTracker.get(CURRENT_BPM));
+        System.out.println(this.dataTracker.get(TICKS_PER_BEAT_CUMULATIVE));
         //System.out.println(this.dataTracker.get(TICKS_PER_BEAT));
         //System.out.println(this.dataTracker.get(ANIMATION_SET));
         //System.out.println(this.dataTracker.get(ANIMATION_STEP));

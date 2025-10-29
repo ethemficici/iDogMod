@@ -18,6 +18,8 @@ import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
@@ -46,7 +48,7 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
 
 
         //TODO: Check if im going insane or if i can just pass the same value twice and have the same outcome as 1.20.1
-        InventoryScreen.drawEntity(context, i + 124, j + 114, i + 124, j + 114, 24, 0.25F, this.mouseX, this.mouseY, this.idog);
+        InventoryScreen.drawEntity(context, i + 98, j + 70, i + 149, j + 121, 24, 0.25F, this.mouseX, this.mouseY, this.idog);
 
         float m = this.idog.getSongVolume(true);
         if (m > 0) { //Draw volume meter with speaker unmuted
@@ -143,7 +145,7 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
         public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
             // Draws a section of the GUI texture instead of a button texture
 
-            if(screen.idog.getDiscAsItem() != null) {
+            if(screen.idog.getTrackedStack() != null && screen.idog.getTrackedStack().isIn(TagKey.of(RegistryKeys.ITEM, Identifier.of("c", "music_discs")))) {
                 if(this.waitTime >= 10) { //On
                     context.drawTexture(SCREEN_TEXTURE, this.getX(), this.getY(), u, v, width, height);
                 } else { //Off
