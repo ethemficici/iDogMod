@@ -23,10 +23,10 @@ public class ModLootTableModifiers {
 
                 LootPool.Builder poolBuilder = LootPool.builder()
                         .rolls(ConstantLootNumberProvider.create(1))
-                        .conditionally(RandomChanceLootCondition.builder(0.25f))
+                        .conditionally(RandomChanceLootCondition.builder(0.5f))
                         .with(ItemEntry.builder(ModItems.iDOG_BOX))
                         .with(ItemEntry.builder(ModItems.MUSIC_DISC_CALM4))
-                        .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(0F, 1F)).build());
+                        .apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1F, 1F)).build());
 
                 tableBuilder.pool(poolBuilder.build());
             }
