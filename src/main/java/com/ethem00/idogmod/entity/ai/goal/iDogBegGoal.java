@@ -36,18 +36,18 @@ public class iDogBegGoal extends Goal {
     }
 
     @Override
-    public boolean shouldContinue() {
+    public boolean canContinueToUse() {
         if (!this.player.isAlive()) {
             return false;
         } else {
-            return this.iDog.squaredDistanceTo(this.player) > this.begDistance * this.begDistance ? false : this.timer > 0 && this.isAttractive(this.player);
+            return this.iDog.distanceToSqr(this.player) > this.begDistance * this.begDistance ? false : this.timer > 0 && this.isAttractive(this.player);
         }
     }
 
     @Override
     public void start() {
         this.iDog.setBegging(true);
-        this.timer = this.getTickCount(40 + this.iDog.getRandom().nextInt(40));
+        this.timer = this.adjustedTickDelay(40 + this.iDog.getRandom().nextInt(40));
     }
 
     @Override
@@ -58,14 +58,14 @@ public class iDogBegGoal extends Goal {
 
     @Override
     public void tick() {
-        this.iDog.getLookControl().lookAt(this.player.getX(), this.player.getEyeY(), this.player.getZ(), 10.0F, this.iDog.getMaxLookPitchChange());
+        this.iDog.getLookControl().setLookAt(this.player.getX(), this.player.getEyeY(), this.player.getZ(), 10.0F, this.iDog.getMaxHeadXRot());
         this.timer--;
     }
 
     private boolean isAttractive(Player player) {
         for (InteractionHand hand : InteractionHand.values()) {
             ItemStack itemStack = player.getItemInHand(hand);
-            if (!this.iDog.isTamed() && itemStack.isOf(Items.BONE)) {
+            if (!this.iDog.isTame() && itemStack.is(Items.BONE)) {
                 return true;
             }
 

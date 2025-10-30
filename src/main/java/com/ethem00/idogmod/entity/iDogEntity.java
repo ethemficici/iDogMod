@@ -10,6 +10,7 @@ import com.ethem00.idogmod.screen.iDogScreenHandler;
 import com.ethem00.idogmod.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
@@ -17,6 +18,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.ItemTags;
@@ -30,6 +32,10 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
+import net.minecraft.world.entity.ai.goal.target.*;
+import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.Turtle;
+import net.minecraft.world.entity.monster.AbstractSkeleton;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
@@ -39,6 +45,7 @@ import net.minecraft.world.item.RecordItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.ticks.ContainerSingleItem;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -46,13 +53,15 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Predicate;
 
-public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSingleItem, iDogEasing, iDogEyeVariants, MenuProvider {
+import static net.minecraft.world.entity.animal.Wolf.PREY_SELECTOR;
+
+public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSingleItem, iDogEasing, iDogEyeVariants, NamedScreenHandlerFactory {
     private static final EntityDataAccessor<Boolean> BEGGING = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> ALERTING = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> IS_PLAYING = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<String> CURRENT_DISC = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<ItemStack> DISC_ITEMSTACK = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.ITEM_STACK);
-    private static final EntityDataAccessor<Integer> EYE_VARIANT = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.INTEGER);
+    private static final EntityDataAccessor<Integer> EYE_VARIANT = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Long> SONG_END_TICK = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.LONG);
     private static final UniformInt ANGER_TIME_RANGE = TimeUtil.rangeOfSeconds(20, 120);
     private boolean wasBegging = false;
@@ -114,21 +123,14 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
         this.goalSelector.addGoal(9, new iDogBegGoal(this, 8.0F));
         this.goalSelector.addGoal(10, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(10, new RandomLookAroundGoal(this));
-        this.targetSelector.addGoal(1, new TrackOwnerAttackerGoal(this));
+        this.targetSelector.addGoal(1, new OwnerHurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new iDogAttackWithOwnerGoal(this));
-        this.targetSelector.addGoal(3, new RevengeGoal(this).setGroupRevenge());
-        this.targetSelector.addGoal(4, new ActiveTargetGoal<>(
-                this,
-                PlayerEntity.class,
-                10,
-                true,
-                false,
-                entity -> this.shouldAngerAtTarget(entity)
-        ));
-        this.targetSelector.add(5, new UntamedActiveTargetGoal(this, AnimalEntity.class, false, FOLLOW_TAMED_PREDICATE));
-        this.targetSelector.add(6, new UntamedActiveTargetGoal(this, TurtleEntity.class, false, TurtleEntity.BABY_TURTLE_ON_LAND_FILTER));
-        this.targetSelector.add(7, new ActiveTargetGoal(this, AbstractSkeletonEntity.class, false));
-        this.targetSelector.add(8, new UniversalAngerGoal<>(this, true));
+        this.targetSelector.addGoal(3, (new HurtByTargetGoal(this)).setAlertOthers());
+        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, Player.class, 10, true, false, this::shouldAngerAtTarget));
+        this.targetSelector.addGoal(5, new NonTameRandomTargetGoal(this, Animal.class, false, PREY_SELECTOR));
+        this.targetSelector.addGoal(6, new NonTameRandomTargetGoal(this, Turtle.class, false, Turtle.BABY_ON_LAND_SELECTOR));
+        this.targetSelector.addGoal(7, new NearestAttackableTargetGoal(this, AbstractSkeleton.class, false));
+        this.targetSelector.addGoal(8, new ResetUniversalAngerTargetGoal<>(this, true));
     }
 
     public static AttributeSupplier.Builder createAttributes(){
@@ -153,9 +155,7 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
         this.entityData.define(LOOP_BOOLEAN, false);
         this.entityData.define(ALERT_BOOLEAN, true);
 
-
         this.entityData.define(DISC_ITEMSTACK, ItemStack.EMPTY);
-
 
         this.entityData.define(IS_PLAYING, false);
         this.entityData.define(CURRENT_DISC, "none");
@@ -628,15 +628,18 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
         this.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(5.0);
     }
 
+
     @Override
-    public void chooseRandomAngerTime() {
-        this.setAngerTime(ANGER_TIME_RANGE.get(this.random));
+    public void startPersistentAngerTimer() {
+        this.setRemainingPersistentAngerTime(ANGER_TIME_RANGE.sample(this.random));
     }
 
+    @Override
     public int getBegDelta() {
         return Mth.clamp(this.cumulativeBegTick, 0, 60);
     }
 
+    @Override
     public int getInverseBegDelta() {
         this.cumulativeBegTick -= 1;
         return Mth.clamp(this.cumulativeBegTick, 0, 60);
@@ -655,18 +658,23 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     }
 
     @Override
-    public void setAngerTime(int angerTime) {
+    public void setRemainingPersistentAngerTime(int angerTime) {
         this.angerTime = angerTime;
     }
 
     @Override
-    public int getAngerTime() {
+    public int getRemainingPersistentAngerTime() {
         return this.angerTime;
     }
 
     @Override
-    public void setAngryAt(@Nullable UUID angryAt) {
+    public void setPersistentAngerTarget(@Nullable UUID angryAt) {
         this.angryAt = angryAt;
+    }
+
+    @javax.annotation.Nullable
+    public UUID getPersistentAngerTarget() {
+        return this.angryAt;
     }
 
     @Nullable
@@ -709,7 +717,7 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     public void addAdditionalSaveData(CompoundTag nbt) {
         super.addAdditionalSaveData(nbt);
         if (!this.getStack().isEmpty()) {
-            nbt.put("RecordItem", this.getStack().writeNbt(new CompoundTag()));
+            nbt.put("RecordItem", this.getStack().save(new CompoundTag()));
         }
 
         //TODO: Alerts for danger and treasure minecarts
@@ -856,10 +864,10 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
 
                 PacketByteBuf buf = PacketByteBufs.create();
                 buf.writeInt(this.getId());
-                buf.writeIdentifier(Registries.ITEM.getId(musicDisc));
+                buf.writeIdentifier(BuiltInRegistries.ITEM.getId(musicDisc));
                 buf.writeString(this.entityData.get(CURRENT_DISC));
-                ServerWorld serverWorld = (ServerWorld) this.getWorld();
-                serverWorld.getPlayers().forEach(player -> {
+                ServerLevel serverWorld = (ServerLevel) this.level();
+                serverWorld.players().forEach(player -> {
                     ServerPlayNetworking.send(player, iDogMod.PLAY_IDOG_MUSIC, buf);
                     //System.out.println("Sound packet sent to Player: " + player + " from entity: " + this.getId() + " with disc ID of: " + Registries.ITEM.getId(musicDisc));
                 });
@@ -867,7 +875,7 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
                 //TODO: Tell the client to set the current disc and itemStack. And set isPlaying to true.
             }
             //this.debugPrintDataTrackedValues();
-            //this.currentSong = musicDisc.getSound();
+            this.currentSong = musicDisc.getSound();
             this.markDirty();
         } else {
             //Debug
@@ -927,6 +935,10 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
         return this.inventory.get(0);
     }
 
+    public ItemStack getStack() {
+        return this.inventory.get(0);
+    }
+
     public RecordItem getDiscAsItem() {
         //Debug
         //System.out.println(dataTracker.get(DISC_ITEMSTACK).getItem().toString());
@@ -971,6 +983,10 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
         return itemStack;
     }
 
+    public ItemStack removeStack() {
+        return this.removeStack(0, 64);
+    }
+
     public void dropRecord() {
         ItemStack itemStack = this.getStack();
         if (this.hasCustomName()) {
@@ -983,6 +999,26 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     @Override
     public void markDirty() {
 
+    }
+
+    @Override
+    public ItemStack getItem(int pSlot) {
+        return this.getStack();
+    }
+
+    @Override
+    public ItemStack removeItem(int pSlot, int pAmount) {
+        return this.removeStack();
+    }
+
+    @Override
+    public void setItem(int pSlot, ItemStack pStack) {
+        this.setStack(pSlot, pStack);
+    }
+
+    @Override
+    public void setChanged() {
+        this.markDirty();
     }
 
     @Override
@@ -1144,11 +1180,11 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
                 if(((TamableAnimal) entity).getOwner() == this.getOwner()) {
                     return false;
                 } else {
-                    return entity.getType() == EntityType.PLAYER && this.isAngryAtAllPlayers(entity.level()) ? true : entity.getUuid().equals(this.getAngryAt());
+                    return entity.getType() == EntityType.PLAYER && this.isAngryAtAllPlayers(entity.level()) ? true : entity.getUUID().equals(this.getAngryAt());
 
                 }
             } else {
-                return entity.getType() == EntityType.PLAYER && this.isAngryAtAllPlayers(entity.level   ()) ? true : entity.getUuid().equals(this.getAngryAt());
+                return entity.getType() == EntityType.PLAYER && this.isAngryAtAllPlayers(entity.level   ()) ? true : entity.getUUID().equals(this.getAngryAt());
             }
         }
     }
@@ -1200,10 +1236,6 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     }
 
     //Mob Alert Sounds
-    //Replace with custom sound events
-    //TODO: Implement modified goal similar to iDogBegGoal.
-    // Detect entities in a radius, ignore line of sight.
-    // Inside class, if entity is detected and alerts are true, send playAlertSounds(type) to iDog.
     public void playAlertSounds(int alertType) {
 
         //TODO ADD CUSTOM ALERT SOUNDS AND IDOG CONTROLLER
@@ -1217,7 +1249,7 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeInt(this.getId());
             buf.writeInt(alertType);
-            ServerWorld serverWorld = (ServerWorld) this.getWorld();
+            ServerLevel serverWorld = (ServerLevel) this.level();
             serverWorld.getPlayers().forEach(player -> {
                 ServerPlayNetworking.send(player, iDogMod.PLAY_IDOG_ALERT, buf);
                 //System.out.println("Sound packet sent to Player: " + player + " from entity: " + this.getId() + " with disc ID of: " + Registries.ITEM.getId(musicDisc));
@@ -1263,10 +1295,6 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
         return Component.literal("iDog");
     }
 
-    public Inventory getInventory() {
-        return this;
-    }
-
     @Override
     public void die(DamageSource damageSource) {
         super.die(damageSource);
@@ -1285,7 +1313,7 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     }
 
     @Override
-    public void writeScreenOpeningData(ServerPlayerEntity player, PacketByteBuf buf) {
+    public void writeScreenOpeningData(ServerPlayer player, PacketByteBuf buf) {
         buf.writeInt(this.getId()); //iDog entity ID
 
         /* Redundant? Can get from entity.
@@ -1296,7 +1324,6 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     }
 
     //Forces the client to be in sync with the server. Prevents early song cancellation
-    @Environment(EnvType.CLIENT)
     public void forceSync(ItemStack itemStack, String currentDisc) {
 
         if(this.level().isClientSide)
