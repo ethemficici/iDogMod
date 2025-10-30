@@ -8,57 +8,37 @@ import com.ethem00.idogmod.entity.client.render.entity.animation.iDogEyeVariants
 import com.ethem00.idogmod.iDogMod;
 import com.ethem00.idogmod.screen.iDogScreenHandler;
 import com.ethem00.idogmod.sound.ModSounds;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.*;
-import net.minecraft.entity.ai.goal.*;
-import net.minecraft.entity.attribute.DefaultAttributeContainer;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.data.TrackedDataHandlerRegistry;
-import net.minecraft.entity.mob.AbstractSkeletonEntity;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.entity.passive.*;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.projectile.PersistentProjectileEntity;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.MusicDiscItem;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.tag.ItemTags;
-import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
-import net.minecraft.util.TimeHelper;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.intprovider.UniformIntProvider;
-import net.minecraft.world.EntityView;
+import net.minecraft.util.TimeUtil;
+import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.World;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.PanicGoal;
+import net.minecraft.world.entity.ai.goal.*;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.RecordItem;
-import net.minecraft.world.level.EntityGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -74,7 +54,7 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     private static final EntityDataAccessor<ItemStack> DISC_ITEMSTACK = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.ITEM_STACK);
     private static final EntityDataAccessor<Integer> EYE_VARIANT = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.INTEGER);
     private static final EntityDataAccessor<Long> SONG_END_TICK = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.LONG);
-    private static final UniformIntProvider ANGER_TIME_RANGE = TimeHelper.betweenSeconds(20, 120);
+    private static final UniformInt ANGER_TIME_RANGE = TimeUtil.rangeOfSeconds(20, 120);
     private boolean wasBegging = false;
     private int cumulativeBegTick = 0;
     private SoundEvent currentSong;
@@ -88,7 +68,7 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     };
 
     //Jukebox + Song Logic
-    private final DefaultedList<ItemStack> inventory = DefaultedList.ofSize(1, ItemStack.EMPTY);
+    private final NonNullList<ItemStack> inventory = NonNullList.withSize(1, ItemStack.EMPTY);
     private int ticksThisSecond;
     private long tickCount; //Cumulative for iDog lifespan.
     private static final EntityDataAccessor<Long> START_TICK = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.LONG);
@@ -96,19 +76,19 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     private static final EntityDataAccessor<Boolean> ALERT_BOOLEAN = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Float> SONG_VOLUME = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.FLOAT);
 
-
     // Eye Effects & Eye Covers
-    private static final EntityDataAccessor<Integer> EYE_COVER = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.INTEGER);
-    private static final EntityDataAccessor<Integer> CURRENT_BPM = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.INTEGER);
-    private static final EntityDataAccessor<Integer> TICKS_PER_BEAT_CUMULATIVE = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.INTEGER); // Ticks inside a beat
+    private static final EntityDataAccessor<Integer> EYE_COVER = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> CURRENT_BPM = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> TICKS_PER_BEAT_CUMULATIVE = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.INT); // Ticks inside a beat
     private static final EntityDataAccessor<Float> TICKS_PER_BEAT = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.FLOAT);
-    private static final EntityDataAccessor<Integer> ANIMATION_SET = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.INTEGER);
-    private static final EntityDataAccessor<Integer> ANIMATION_STEP = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.INTEGER);
-    private static final EntityDataAccessor<Integer> ANIMATION_STEP_COUNT = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.INTEGER);
-    private static final EntityDataAccessor<Integer> BEAT_CUMULATIVE = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.INTEGER);
-    private static final EntityDataAccessor<Integer> EASE_METHOD = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.INTEGER);
+    private static final EntityDataAccessor<Integer> ANIMATION_SET = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> ANIMATION_STEP = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> ANIMATION_STEP_COUNT = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> BEAT_CUMULATIVE = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> EASE_METHOD = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> SPEED_MOD = SynchedEntityData.defineId(iDogEntity.class, EntityDataSerializers.FLOAT);
     private boolean forceFreshTick = false;
+
     //
     private float eyeRedValue;
     private float eyeGreenValue;
@@ -116,24 +96,24 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     private float eyeAlphaValue;
     private Color baseEyeRGBA = new Color (1F, 1F, 1F, 1F);
 
-    public iDogEntity(EntityType<? extends TamableAnimal> entityType, World world) {
+    public iDogEntity(EntityType<? extends TamableAnimal> entityType, Level world) {
         super(entityType, world);
     }
 
     @Override
     protected void initGoals() {
-        this.goalSelector.addGoal(1, new SwimGoal(this));
+        this.goalSelector.addGoal(1, new FloatGoal(this));
         this.goalSelector.addGoal(1, new iDogEntity.iDogEscapeDangerGoal(1.5));
-        this.goalSelector.addGoal(2, new SitGoal(this));
-        this.goalSelector.addGoal(4, new PounceAtTargetGoal(this, 0.4F));
+        this.goalSelector.addGoal(2, new SitWhenOrderedToGoal(this));
+        this.goalSelector.addGoal(4, new LeapAtTargetGoal(this, 0.4F));
         this.goalSelector.addGoal(5, new MeleeAttackGoal(this, 1.0, true));
         this.goalSelector.addGoal(6, new FollowOwnerGoal(this, 1.0, 10.0F, 2.0F, false));
-        this.goalSelector.addGoal(7, new AnimalMateGoal(this, 1.0));
+        this.goalSelector.addGoal(7, new BreedGoal(this, 1.0));
         this.goalSelector.addGoal(7, new iDogAlertsGoal(this, 16));
-        this.goalSelector.addGoal(8, new WanderAroundFarGoal(this, 1.0));
+        this.goalSelector.addGoal(8, new WaterAvoidingRandomStrollGoal(this, 1.0));
         this.goalSelector.addGoal(9, new iDogBegGoal(this, 8.0F));
-        this.goalSelector.addGoal(10, new LookAtEntityGoal(this, PlayerEntity.class, 8.0F));
-        this.goalSelector.addGoal(10, new LookAroundGoal(this));
+        this.goalSelector.addGoal(10, new LookAtPlayerGoal(this, Player.class, 8.0F));
+        this.goalSelector.addGoal(10, new RandomLookAroundGoal(this));
         this.targetSelector.addGoal(1, new TrackOwnerAttackerGoal(this));
         this.targetSelector.addGoal(2, new iDogAttackWithOwnerGoal(this));
         this.targetSelector.addGoal(3, new RevengeGoal(this).setGroupRevenge());
@@ -151,14 +131,14 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
         this.targetSelector.add(8, new UniversalAngerGoal<>(this, true));
     }
 
-    public static DefaultAttributeContainer.Builder createiDogAttributes(){
-        return MobEntity.createMobAttributes()
-                .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.35F)
-                .add(EntityAttributes.GENERIC_MAX_HEALTH, 12.0)
-                .add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 3.0)
-                .add(EntityAttributes.GENERIC_ARMOR, 1.0)
-                .add(EntityAttributes.GENERIC_ARMOR_TOUGHNESS, 1.0)
-                .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE, 0.5);
+    public static AttributeSupplier.Builder createAttributes(){
+        return Mob.createMobAttributes()
+                .add(Attributes.MOVEMENT_SPEED, 0.35F)
+                .add(Attributes.MAX_HEALTH, 12.0)
+                .add(Attributes.ATTACK_DAMAGE, 3.0)
+                .add(Attributes.ARMOR, 1.0)
+                .add(Attributes.ARMOR_TOUGHNESS, 1.0)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 0.5);
     }
 
     @Override
@@ -467,11 +447,11 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     }
 
     private void setEyeVariant() {
-        this.dataTracker.set(EYE_VARIANT, getEyeVariantFromDisc(getCurrentDisc()));
+        this.entityData.set(EYE_VARIANT, getEyeVariantFromDisc(getCurrentDisc()));
     }
 
     public int getEyeVariant() {
-        return this.dataTracker.get(EYE_VARIANT);
+        return this.entityData.get(EYE_VARIANT);
     }
 
     //Takes a string starting with "music_disc_" and returns an integer denoting the eye variant to display
@@ -605,28 +585,28 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     }
 
     @Override
-    public boolean damage(DamageSource source, float amount) {
+    public boolean hurt(DamageSource source, float amount) {
         if (this.isInvulnerableTo(source)) {
             return false;
         } else {
-            Entity entity = source.getAttacker();
-            if (!this.getWorld().isClient) {
-                super.setSitting(false);
+            Entity entity = source.getEntity();
+            if (!this.level().isClientSide()) {
+                super.setOrderedToSit(false);
             }
 
-            if (entity != null && !(entity instanceof PlayerEntity) && !(entity instanceof PersistentProjectileEntity)) {
+            if (entity != null && !(entity instanceof Player) && !(entity instanceof AbstractArrow)) {
                 amount = (amount + 1.0F) / 2.0F;
             }
 
-            return super.damage(source, amount);
+            return super.hurt(source, amount);
         }
     }
 
     @Override
-    public boolean tryAttack(Entity target) {
-        boolean bl = target.damage(this.getDamageSources().mobAttack(this), (int)this.getAttributeValue(EntityAttributes.GENERIC_ATTACK_DAMAGE));
+    public boolean doHurtTarget(Entity target) {
+        boolean bl = target.hurt(this.damageSources().mobAttack(this), (int)this.getAttributeValue(Attributes.ATTACK_DAMAGE));
         if (bl) {
-            this.applyDamageEffects(this, target);
+            this.doEnchantDamageEffects(this, target);
         }
 
         return bl;
@@ -696,21 +676,21 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     }
 
     @Override
-    public void tickMovement() {
-        super.tickMovement();
+    public void aiStep() {
+        super.aiStep();
 
-        if (!this.getWorld().isClient) {
-            this.tickAngerLogic((ServerWorld)this.getWorld(), true);
+        if (!this.level().isClientSide) {
+            this.updatePersistentAnger((ServerLevel)this.level(), true);
         }
     }
 
     //**!* Start of Jukebox *!**//
     @Override
-    public void readAdditionalSaveData(NbtCompound nbt) {
+    public void readAdditionalSaveData(CompoundTag nbt) {
         super.readAdditionalSaveData(nbt);
-        if (nbt.contains("RecordItem", NbtElement.COMPOUND_TYPE)) {
-            this.inventory.set(0, ItemStack.fromNbt(nbt.getCompound("RecordItem")));
-            this.dataTracker.set(DISC_ITEMSTACK, ItemStack.fromNbt(nbt.getCompound("RecordItem")));
+        if (nbt.contains("RecordItem", Tag.TAG_COMPOUND)) {
+            this.inventory.set(0, ItemStack.of(nbt.getCompound("RecordItem")));
+            this.entityData.set(DISC_ITEMSTACK, ItemStack.of(nbt.getCompound("RecordItem")));
         }
 
         this.entityData.set(LOOP_BOOLEAN, nbt.getBoolean("LoopSongs"));
@@ -726,24 +706,24 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     }
 
     @Override
-    public void writeCustomDataToNbt(NbtCompound nbt) {
-        super.writeCustomDataToNbt(nbt);
+    public void addAdditionalSaveData(CompoundTag nbt) {
+        super.addAdditionalSaveData(nbt);
         if (!this.getStack().isEmpty()) {
-            nbt.put("RecordItem", this.getStack().writeNbt(new NbtCompound()));
+            nbt.put("RecordItem", this.getStack().writeNbt(new CompoundTag()));
         }
 
         //TODO: Alerts for danger and treasure minecarts
         // On alert, volume for sound instance is lerped to 0 until the alert finishes, and then it is lerped back to its original volume.
-        if(!isTamed()) {
+        if(!this.isTame()) {
             nbt.putFloat("SongVolume", 1F);
             nbt.putBoolean("LoopSongs", false);
             nbt.putBoolean("AlertMe", true);
         } else {
-            nbt.putFloat("SongVolume", this.dataTracker.get(SONG_VOLUME));
-            nbt.putBoolean("LoopSongs", this.dataTracker.get(LOOP_BOOLEAN));
-            nbt.putBoolean("AlertMe", this.dataTracker.get(ALERT_BOOLEAN));
+            nbt.putFloat("SongVolume", this.entityData.get(SONG_VOLUME));
+            nbt.putBoolean("LoopSongs", this.entityData.get(LOOP_BOOLEAN));
+            nbt.putBoolean("AlertMe", this.entityData.get(ALERT_BOOLEAN));
         }
-        nbt.putLong("RecordStartTick", this.dataTracker.get(START_TICK));
+        nbt.putLong("RecordStartTick", this.entityData.get(START_TICK));
         nbt.putLong("TickCount", this.tickCount);
         nbt.putString("CurrentDisc", this.getCurrentDisc());
     }
@@ -815,7 +795,6 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
         this.entityData.set(IS_PLAYING, false);
     }
 
-    //TODO SOUND INSTANCE FINISHED WHEN LOOPING. START PLAYING LOGIC IN HERE
     public void soundInstanceFinishedAlert() {
 
         this.stopPlaying();
@@ -824,7 +803,7 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
 
     @Override
     public boolean isValid(int slot, ItemStack stack) {
-        return stack.isIn(ItemTags.MUSIC_DISCS) && this.getStack(slot).isEmpty();
+        return stack.is(ItemTags.MUSIC_DISCS) && this.getStack(slot).isEmpty();
     }
 
     /**
@@ -962,17 +941,17 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     @Override
     public void setStack(int slot, ItemStack stack) {
 
-        if (stack.isIn(ItemTags.MUSIC_DISCS)) {
+        if (stack.is(ItemTags.MUSIC_DISCS)) {
             this.inventory.set(0, stack);
             this.entityData.set(DISC_ITEMSTACK, stack);
             this.setCurrentDisc(stack.getItem().toString());
             //Debug
             //System.out.println("iDog is now playing: " + getCurrentDisc());
-            this.startPlaying((MusicDiscItem) stack.getItem());
-            this.setSongEndTick((MusicDiscItem) stack.getItem());
+            this.startPlaying((RecordItem) stack.getItem());
+            this.setSongEndTick((RecordItem) stack.getItem());
 
-            playSound(SoundEvents.ENTITY_ITEM_FRAME_ROTATE_ITEM, 2.0F, 0.25F);
-            playSound(SoundEvents.ITEM_BOTTLE_FILL_DRAGONBREATH, 2.0F, 0.5F);
+            playSound(SoundEvents.ITEM_FRAME_ROTATE_ITEM, 2.0F, 0.25F);
+            playSound(SoundEvents.BOTTLE_FILL_DRAGONBREATH, 2.0F, 0.5F);
         }
     }
 
@@ -981,7 +960,7 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     public ItemStack removeStack(int slot, int amount) {
         this.dropRecord();
         ItemStack itemStack = (ItemStack) Objects.requireNonNullElse(this.inventory.get(0), ItemStack.EMPTY);
-        playSound(SoundEvents.ENTITY_ITEM_FRAME_REMOVE_ITEM, 2.0F, 2.0F);
+        playSound(SoundEvents.ITEM_FRAME_REMOVE_ITEM, 2.0F, 2.0F);
         this.inventory.set(0, ItemStack.EMPTY);
         if (!itemStack.isEmpty()) {
             this.setCurrentDisc("none"); //SOMETIMES IT'S JUST RANDOMLY EMPTY!
@@ -995,10 +974,10 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     public void dropRecord() {
         ItemStack itemStack = this.getStack();
         if (this.hasCustomName()) {
-            itemStack.setCustomName(this.getCustomName());
+            itemStack.setHoverName(this.getCustomName());
         }
 
-        this.dropStack(itemStack);
+        this.spawnAtLocation(itemStack);
     }
 
     @Override
@@ -1007,7 +986,7 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     }
 
     @Override
-    public boolean canPlayerUse(Player player) {
+    public boolean stillValid(Player player) {
         return false;
     }
     //**!* End of Jukebox *!**//
@@ -1040,17 +1019,17 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     public InteractionResult mobInteract(Player player, InteractionHand hand) {
 
 
-        ItemStack itemStack = player.getStackInHand(hand);
+        ItemStack itemStack = player.getItemInHand(hand);
 
-            if (!this.isOwner(player) && !this.isTamed()) { // if player is not owner, it is not tamed,
+            if (!this.isOwnedBy(player) && !this.isTame()) { // if player is not owner, it is not tamed,
 
-                if (itemStack.isOf(Items.BONE) && !this.hasAngerTime()) {
+                if (itemStack.is(Items.BONE) && !this.isAngry()) {
                     if (this.random.nextInt(3) == 0) { // 25% chance to tame
-                        this.setOwner(player);
+                        this.tame(player);
                         this.navigation.stop();
-                        itemStack.decrement(1);
+                        itemStack.shrink(1);
                         if (!this.level().isClientSide()) {
-                            super.setSitting(true);
+                            super.setOrderedToSit(true);
                             this.entityData.set(SONG_VOLUME, 1F);
                             this.entityData.set(LOOP_BOOLEAN, false);
                             this.entityData.set(ALERT_BOOLEAN, true);
@@ -1072,13 +1051,13 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
 
             if (this.isOwnedBy(player) && this.isTame()) {
 
-                Boolean canHeal = (itemStack.isOf(Items.IRON_NUGGET) || itemStack.isOf(Items.IRON_INGOT) || itemStack.isOf(Items.COPPER_INGOT) && (this.getHealth() != this.getMaxHealth()));
-                if (!canHeal && !itemStack.isIn(ItemTags.MUSIC_DISCS)) {
+                Boolean canHeal = (itemStack.is(Items.IRON_NUGGET) || itemStack.is(Items.IRON_INGOT) || itemStack.is(Items.COPPER_INGOT) && (this.getHealth() != this.getMaxHealth()));
+                if (!canHeal && !itemStack.is(ItemTags.MUSIC_DISCS)) {
 
-                    if (player.isSneaking())
+                    if (player.isCrouching())
                     {
                         if (!player.level().isClientSide()) {
-                            player.openHandledScreen(this); // this triggers createMenu()
+                            player.openMenu(this); // this triggers createMenu()
                             return InteractionResult.SUCCESS;
                         }
 
@@ -1090,7 +1069,7 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
                         InteractionResult actionResult = super.mobInteract(player, hand);
                         if ((!actionResult.consumesAction() || this.isBaby()) && this.isOwnedBy(player)) {
                             if (!this.level().isClientSide()) {
-                                super.setSitting(!isSitting());
+                                super.setOrderedToSit(!isOrderedToSit());
                             }
                             this.jumping = false;
                             this.navigation.stop();
@@ -1100,20 +1079,20 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
                     }
                 }
 
-                if (!itemStack.isIn(ItemTags.MUSIC_DISCS)) {
+                if (!itemStack.is(ItemTags.MUSIC_DISCS)) {
                     float f = this.getHealth();
-                    if (itemStack.isOf(Items.IRON_NUGGET) || itemStack.isOf(Items.COPPER_INGOT)) {
+                    if (itemStack.is(Items.IRON_NUGGET) || itemStack.is(Items.COPPER_INGOT)) {
                         this.heal(2.5F);
                     }
-                    if (itemStack.isOf(Items.IRON_INGOT)) {
+                    if (itemStack.is(Items.IRON_INGOT)) {
                         this.heal(25.0F);
                     }
                     if (this.getHealth() == f) {
                         return InteractionResult.PASS;
                     } else {
                         float g = 1.0F + (this.random.nextFloat() - this.random.nextFloat()) * 0.2F;
-                        this.playSound(SoundEvents.ENTITY_PLAYER_BURP, 1.0F, g);
-                        this.playSound(SoundEvents.ENTITY_IRON_GOLEM_REPAIR, 0.5F, g);
+                        this.playSound(SoundEvents.PLAYER_BURP, 1.0F, g);
+                        this.playSound(SoundEvents.IRON_GOLEM_REPAIR, 0.5F, g);
                         if (!player.getAbilities().instabuild) {
                             itemStack.shrink(1);
                         }
@@ -1125,12 +1104,12 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
                 if (itemStack.is(ItemTags.MUSIC_DISCS)) {
                     ItemStack discCopy = itemStack.copy(); //Prevents itemStack.decrement from turning the disc into air!
 
-                    if (getCurrentDiscItemStack().getItem() instanceof MusicDiscItem) {
+                    if (getCurrentDiscItemStack().getItem() instanceof RecordItem) {
                         this.removeStack();
                     } else {
                         this.setStack(0, discCopy);
-                        if(!player.getAbilities().creativeMode) {
-                            itemStack.decrement(1);
+                        if(!player.getAbilities().instabuild) {
+                            itemStack.shrink(1);
                         }
                     }
                     return InteractionResult.SUCCESS;
@@ -1139,15 +1118,14 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
             return InteractionResult.PASS;
     }
 
-    @Override
-    public void setSitting(boolean sitting) {
-        super.setSitting(sitting);
-        this.setInSittingPose(sitting);
+    public boolean isOrderedToSit() {
+        return super.isOrderedToSit();
     }
 
     @Override
-    public EntityGetter method_48926() {
-        return this.level();
+    public void setOrderedToSit(boolean sitting) {
+        super.setOrderedToSit(sitting);
+        this.setInSittingPose(sitting);
     }
 
     class iDogEscapeDangerGoal extends PanicGoal {
@@ -1157,7 +1135,7 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     }
 
     boolean shouldAngerAtTarget(LivingEntity entity) {
-        if (!this.canTarget(entity)) {
+        if (!this.canAttack(entity)) {
             return false;
         } else {
 
@@ -1166,33 +1144,33 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
                 if(((TamableAnimal) entity).getOwner() == this.getOwner()) {
                     return false;
                 } else {
-                    return entity.getType() == EntityType.PLAYER && this.isUniversallyAngry(entity.getWorld()) ? true : entity.getUuid().equals(this.getAngryAt());
+                    return entity.getType() == EntityType.PLAYER && this.isAngryAtAllPlayers(entity.level()) ? true : entity.getUuid().equals(this.getAngryAt());
 
                 }
             } else {
-                return entity.getType() == EntityType.PLAYER && this.isUniversallyAngry(entity.getWorld()) ? true : entity.getUuid().equals(this.getAngryAt());
+                return entity.getType() == EntityType.PLAYER && this.isAngryAtAllPlayers(entity.level   ()) ? true : entity.getUuid().equals(this.getAngryAt());
             }
         }
     }
 
     @Override
-    public @Nullable AgeableMob createChild(ServerLevel world, AgeableMob entity) {
+    public @Nullable AgeableMob getBreedOffspring(ServerLevel world, AgeableMob entity) {
         return null;
     }
 
     @Override
-    protected Entity.MovementEmission getMoveEffect() {
+    protected Entity.MovementEmission getMovementEmission() {
         return MovementEmission.SOUNDS;
     }
 
     @Override
-    protected int getNextAirUnderwater(int air) {
+    protected int decreaseAirSupply(int air) {
         return air;
     }
 
     @Override
     protected SoundEvent getAmbientSound() {
-        if (this.hasAngerTime()) {
+        if (this.isAngry()) {
             return ModSounds.ENTITY_IDOG_GROWL;
         } else if (this.random.nextInt(3) == 0) {
             return this.isTame() && this.getHealth() < 10.0F ? ModSounds.ENTITY_IDOG_WHINE : ModSounds.ENTITY_IDOG_PANT;
@@ -1218,7 +1196,7 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
 
     @Override
     protected void playStepSound(BlockPos pos, BlockState state) {
-        this.playSound(SoundEvents.ENTITY_IRON_GOLEM_STEP, 0.5F, 2.0F);
+        this.playSound(SoundEvents.IRON_GOLEM_STEP, 0.5F, 2.0F);
     }
 
     //Mob Alert Sounds
@@ -1255,27 +1233,26 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     }
 
     @Override
-    public int getMaxLookPitchChange() {
-        return this.isInSittingPose() ? 20 : super.getMaxLookPitchChange();
+    public int getMaxHeadXRot() {
+        return this.isInSittingPose() ? 20 : super.getMaxHeadXRot();
     }
 
     @Override
     public Vec3 getLeashOffset() {
-        return new Vec3(0.0, 0.675F * this.getStandingEyeHeight(), this.getWidth() * 0.4F);
+        return new Vec3(0.0, 0.675F * this.getEyeHeight(), this.getBbWidth() * 0.4F);
     }
 
     //Animations
-
     @Override
     protected void updateLimbs(float posDelta) {
         float f;
-        if (this.getPose() == EntityPose.STANDING) {
+        if (this.getPose() == Pose.STANDING) {
             f = Math.min(posDelta * 6.0F, 1.0F);
         } else {
             f = 0.0F;
         }
 
-        this.limbAnimator.updateLimbs(f, 0.2F);
+        this.walkAnimation.update(f, 0.2F);
     }
 
     //Screens
@@ -1291,14 +1268,14 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     }
 
     @Override
-    public void onDeath(DamageSource damageSource) {
-        super.onDeath(damageSource);
-        this.dropStack(this.dataTracker.get(DISC_ITEMSTACK));
-        this.dropStack(new ItemStack(Items.IRON_INGOT, 1 + this.random.nextInt(3)));
+    public void die(DamageSource damageSource) {
+        super.die(damageSource);
+        this.spawnAtLocation(this.entityData.get(DISC_ITEMSTACK));
+        this.spawnAtLocation(new ItemStack(Items.IRON_INGOT, 1 + this.random.nextInt(3)));
     }
 
     @Override
-    public @Nullable ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
+    public @Nullable ScreenHandler createMenu(int syncId, Inventory playerInventory, Player player) {
 
         PacketByteBuf buf = PacketByteBufs.create();
         buf.writeInt(this.getId()); //iDog entity ID
@@ -1322,14 +1299,17 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     @Environment(EnvType.CLIENT)
     public void forceSync(ItemStack itemStack, String currentDisc) {
 
-        MusicDiscItem musicDisc = (MusicDiscItem) itemStack.getItem();
+        if(this.level().isClientSide)
+        {
+            RecordItem musicDisc = (RecordItem) itemStack.getItem();
 
-        this.entityData.set(START_TICK, this.tickCount);
-        this.entityData.set(DISC_ITEMSTACK, itemStack);
-        this.entityData.set(CURRENT_DISC, currentDisc);
-        this.entityData.set(IS_PLAYING, true);
-        this.setSongEndTick(musicDisc); // Tells dataTracker the end tick.
-        this.currentSong = musicDisc.getSound();
+            this.entityData.set(START_TICK, this.tickCount);
+            this.entityData.set(DISC_ITEMSTACK, itemStack);
+            this.entityData.set(CURRENT_DISC, currentDisc);
+            this.entityData.set(IS_PLAYING, true);
+            this.setSongEndTick(musicDisc); // Tells dataTracker the end tick.
+            this.currentSong = musicDisc.getSound();
+        }
     }
 
     public void debugPrintDataTrackedValues() {

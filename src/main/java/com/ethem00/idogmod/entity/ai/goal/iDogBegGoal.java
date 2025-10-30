@@ -1,15 +1,13 @@
 package com.ethem00.idogmod.entity.ai.goal;
 
 import com.ethem00.idogmod.entity.iDogEntity;
-import net.minecraft.entity.ai.TargetPredicate;
-import net.minecraft.entity.ai.goal.Goal;
-import net.minecraft.entity.passive.WolfEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.targeting.TargetingConditions;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
@@ -17,32 +15,32 @@ import java.util.EnumSet;
 public class iDogBegGoal extends Goal {
     private final iDogEntity iDog;
     @Nullable
-    private PlayerEntity begFrom;
-    private World world;
+    private Player player;
+    private Level world;
     private final float begDistance;
     private int timer;
-    private final TargetPredicate validPlayerPredicate;
+    private final TargetingConditions validPlayerPredicate;
 
     public iDogBegGoal(iDogEntity iDog, float begDistance) {
         this.iDog = iDog;
-        this.world = iDog.getWorld();
+        this.world = iDog.level();
         this.begDistance = begDistance;
-        this.validPlayerPredicate = TargetPredicate.createNonAttackable().setBaseMaxDistance(begDistance);
-        this.setControls(EnumSet.of(Goal.Control.LOOK));
+        this.validPlayerPredicate = TargetingConditions.forNonCombat().range(begDistance);
+        this.setFlags(EnumSet.of(Goal.Flag.LOOK));
     }
 
     @Override
-    public boolean canStart() {
-        this.begFrom = this.world.getClosestPlayer(this.validPlayerPredicate, this.iDog);
-        return this.begFrom == null ? false : this.isAttractive(this.begFrom);
+    public boolean canUse() {
+        this.player = this.world.getNearestPlayer(this.validPlayerPredicate, this.iDog);
+        return this.player == null ? false : this.isAttractive(this.player);
     }
 
     @Override
     public boolean shouldContinue() {
-        if (!this.begFrom.isAlive()) {
+        if (!this.player.isAlive()) {
             return false;
         } else {
-            return this.iDog.squaredDistanceTo(this.begFrom) > this.begDistance * this.begDistance ? false : this.timer > 0 && this.isAttractive(this.begFrom);
+            return this.iDog.squaredDistanceTo(this.player) > this.begDistance * this.begDistance ? false : this.timer > 0 && this.isAttractive(this.player);
         }
     }
 
@@ -55,30 +53,30 @@ public class iDogBegGoal extends Goal {
     @Override
     public void stop() {
         this.iDog.setBegging(false);
-        this.begFrom = null;
+        this.player = null;
     }
 
     @Override
     public void tick() {
-        this.iDog.getLookControl().lookAt(this.begFrom.getX(), this.begFrom.getEyeY(), this.begFrom.getZ(), 10.0F, this.iDog.getMaxLookPitchChange());
+        this.iDog.getLookControl().lookAt(this.player.getX(), this.player.getEyeY(), this.player.getZ(), 10.0F, this.iDog.getMaxLookPitchChange());
         this.timer--;
     }
 
-    private boolean isAttractive(PlayerEntity player) {
-        for (Hand hand : Hand.values()) {
-            ItemStack itemStack = player.getStackInHand(hand);
+    private boolean isAttractive(Player player) {
+        for (InteractionHand hand : InteractionHand.values()) {
+            ItemStack itemStack = player.getItemInHand(hand);
             if (!this.iDog.isTamed() && itemStack.isOf(Items.BONE)) {
                 return true;
             }
 
-            if (this.iDog.isTamed()) {
-                if(itemStack.isOf(Items.BONE)) {return true;}
+            if (this.iDog.isTame()) {
+                if(itemStack.is(Items.BONE)) {return true;}
                 if(this.iDog.getHealth() != this.iDog.getMaxHealth()) {
-                    if(itemStack.isOf(Items.IRON_INGOT) || itemStack.isOf(Items.IRON_NUGGET) || itemStack.isOf(Items.COPPER_INGOT)) {return true;}
+                    if(itemStack.is(Items.IRON_INGOT) || itemStack.is(Items.IRON_NUGGET) || itemStack.is(Items.COPPER_INGOT)) {return true;}
                 }
             }
 
-            if (this.iDog.isBreedingItem(itemStack)) {
+            if (this.iDog.isFood(itemStack)) {
                 return true;
             }
         }
