@@ -4,16 +4,16 @@ import com.ethem00.idogmod.entity.client.iDogEntityModel;
 import com.ethem00.idogmod.entity.client.render.entity.animation.iDogEasing;
 import com.ethem00.idogmod.entity.iDogEntity;
 import com.ethem00.idogmod.iDogMod;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.entity.feature.EyesFeatureRenderer;
-import net.minecraft.client.render.entity.feature.FeatureRendererContext;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.RenderLayerParent;
+import net.minecraft.client.renderer.entity.layers.EyesLayer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import static org.apache.commons.lang3.RandomUtils.nextInt;
 
@@ -25,74 +25,75 @@ import static org.apache.commons.lang3.RandomUtils.nextInt;
  * Easing mathematical functions provided by Andrey Sitnik and Ivan Solovev
  */
 
-@Environment(EnvType.CLIENT)
-public class iDogLidFeatureRenderer<T extends iDogEntity, M extends iDogEntityModel<T>> extends EyesFeatureRenderer<T, M> {
-    private static final RenderLayer COVER_NONE_RENDERLAYER = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_none.png"));
+@OnlyIn(Dist.CLIENT)
+public class iDogLidFeatureRenderer<T extends iDogEntity, M extends iDogEntityModel<T>> extends EyesLayer<T, M> {
+    private static final RenderType COVER_NONE_RENDERLAYER = RenderType.eyes(ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_none.png"));
     //Render layer!
-    private static final Identifier COVER_MISSING_NUMBER = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_missing_number.png");
+    private static final ResourceLocation COVER_MISSING_NUMBER = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_missing_number.png");
 
-    private static final Identifier COVER_INVERTED_CENTER = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_center.png");
-    private static final Identifier COVER_NONE = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_none.png");
-    private static final Identifier COVER_ALL = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_all.png");
-    private static final Identifier COVER_CENTER = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_center.png");
+    private static final ResourceLocation COVER_INVERTED_CENTER = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_center.png");
+    private static final ResourceLocation COVER_NONE = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_none.png");
+    private static final ResourceLocation COVER_ALL = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_all.png");
+    private static final ResourceLocation COVER_CENTER = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_center.png");
 
-    private static final Identifier COVER_3 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_3.png");
-    private static final Identifier COVER_4 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_4.png");
-    private static final Identifier COVER_5 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_5.png");
-    private static final Identifier COVER_6 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_6.png");
-    private static final Identifier COVER_7 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_7.png");
-    private static final Identifier COVER_8 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_8.png");
+    private static final ResourceLocation COVER_3 = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_3.png");
+    private static final ResourceLocation COVER_4 = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_4.png");
+    private static final ResourceLocation COVER_5 = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_5.png");
+    private static final ResourceLocation COVER_6 = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_6.png");
+    private static final ResourceLocation COVER_7 = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_7.png");
+    private static final ResourceLocation COVER_8 = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_clockwise_8.png");
 
-    private static final Identifier COVER_3_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_3.png");
-    private static final Identifier COVER_4_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_4.png");
-    private static final Identifier COVER_5_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_5.png");
-    private static final Identifier COVER_6_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_6.png");
-    private static final Identifier COVER_7_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_7.png");
-    private static final Identifier COVER_8_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_8.png");
+    private static final ResourceLocation COVER_3_INVERTED = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_3.png");
+    private static final ResourceLocation COVER_4_INVERTED = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_4.png");
+    private static final ResourceLocation COVER_5_INVERTED = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_5.png");
+    private static final ResourceLocation COVER_6_INVERTED = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_6.png");
+    private static final ResourceLocation COVER_7_INVERTED = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_7.png");
+    private static final ResourceLocation COVER_8_INVERTED = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_inverted_clockwise_8.png");
 
-    private static final Identifier COVER_TOP = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_top.png");
-    private static final Identifier COVER_BOTTOM = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_bottom.png");
-    private static final Identifier COVER_TOP_CENTER = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_top_center.png");
-    private static final Identifier COVER_BOTTOM_CENTER = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_bottom_center.png");
+    private static final ResourceLocation COVER_TOP = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_top.png");
+    private static final ResourceLocation COVER_BOTTOM = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_bottom.png");
+    private static final ResourceLocation COVER_TOP_CENTER = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_top_center.png");
+    private static final ResourceLocation COVER_BOTTOM_CENTER = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_bottom_center.png");
 
-    private static final Identifier COVER_40 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_40.png");
-    private static final Identifier COVER_407 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_407.png");
-    private static final Identifier COVER_70 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_70.png");
-    private static final Identifier COVER_407_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_407_inverted.png");
+    private static final ResourceLocation COVER_40 = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_40.png");
+    private static final ResourceLocation COVER_407 = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_407.png");
+    private static final ResourceLocation COVER_70 = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_70.png");
+    private static final ResourceLocation COVER_407_INVERTED = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_407_inverted.png");
 
-    private static final Identifier COVER_TRI_LEFT_DOWN = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_left_down.png");
-    private static final Identifier COVER_TRI_LEFT = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_left.png");
-    private static final Identifier COVER_TRI_LEFT_UP = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_left_up.png");
-    private static final Identifier COVER_TRI_RIGHT_DOWN = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_right_down.png");
-    private static final Identifier COVER_TRI_RIGHT = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_right.png");
-    private static final Identifier COVER_TRI_RIGHT_UP = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_right_up.png");
+    private static final ResourceLocation COVER_TRI_LEFT_DOWN = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_left_down.png");
+    private static final ResourceLocation COVER_TRI_LEFT = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_left.png");
+    private static final ResourceLocation COVER_TRI_LEFT_UP = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_left_up.png");
+    private static final ResourceLocation COVER_TRI_RIGHT_DOWN = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_right_down.png");
+    private static final ResourceLocation COVER_TRI_RIGHT = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_right.png");
+    private static final ResourceLocation COVER_TRI_RIGHT_UP = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_right_up.png");
 
-    private static final Identifier COVER_INVERTED_TRI_LEFT_DOWN = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_left_down.png");
-    private static final Identifier COVER_INVERTED_TRI_LEFT = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_left.png");
-    private static final Identifier COVER_INVERTED_TRI_LEFT_UP = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_left_up.png");
-    private static final Identifier COVER_INVERTED_TRI_RIGHT_DOWN = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_right_down.png");
-    private static final Identifier COVER_INVERTED_TRI_RIGHT = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_right.png");
-    private static final Identifier COVER_INVERTED_TRI_RIGHT_UP = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_right_up.png");
+    private static final ResourceLocation COVER_INVERTED_TRI_LEFT_DOWN = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_left_down.png");
+    private static final ResourceLocation COVER_INVERTED_TRI_LEFT = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_left.png");
+    private static final ResourceLocation COVER_INVERTED_TRI_LEFT_UP = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_left_up.png");
+    private static final ResourceLocation COVER_INVERTED_TRI_RIGHT_DOWN = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_right_down.png");
+    private static final ResourceLocation COVER_INVERTED_TRI_RIGHT = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_right.png");
+    private static final ResourceLocation COVER_INVERTED_TRI_RIGHT_UP = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_tri_inverted_right_up.png");
 
-    private static final Identifier COVER_TWIST1 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_1.png");
-    private static final Identifier COVER_TWIST2 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_2.png");
-    private static final Identifier COVER_TWIST3 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_3.png");
-    private static final Identifier COVER_TWIST1_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_1_inverted.png");
-    private static final Identifier COVER_TWIST2_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_2_inverted.png");
-    private static final Identifier COVER_TWIST3_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_3_inverted.png");
+    private static final ResourceLocation COVER_TWIST1 = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_1.png");
+    private static final ResourceLocation COVER_TWIST2 = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_2.png");
+    private static final ResourceLocation COVER_TWIST3 = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_3.png");
+    private static final ResourceLocation COVER_TWIST1_INVERTED = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_1_inverted.png");
+    private static final ResourceLocation COVER_TWIST2_INVERTED = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_2_inverted.png");
+    private static final ResourceLocation COVER_TWIST3_INVERTED = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_twist_3_inverted.png");
 
     //Threes
-    private static final Identifier COVER_345 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_345.png");
-    private static final Identifier COVER_345_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_345_inverted.png");
-    private static final Identifier COVER_678 = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_678.png");
-    private static final Identifier COVER_678_INVERTED = new Identifier(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_678_inverted.png");
+    private static final ResourceLocation COVER_345 = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_345.png");
+    private static final ResourceLocation COVER_345_INVERTED = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_345_inverted.png");
+    private static final ResourceLocation COVER_678 = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_678.png");
+    private static final ResourceLocation COVER_678_INVERTED = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/eyes/covers/idog_eyes_cover_678_inverted.png");
 
 
-    public iDogLidFeatureRenderer(FeatureRendererContext<T, M> featureRendererContext) {
+    public iDogLidFeatureRenderer(RenderLayerParent<T, M> featureRendererContext) {
         super(featureRendererContext);
     }
+
     @Override
-    public RenderLayer getEyesTexture() {
+    public RenderType renderType() {
         return COVER_NONE_RENDERLAYER;
     }
 
@@ -106,7 +107,7 @@ public class iDogLidFeatureRenderer<T extends iDogEntity, M extends iDogEntityMo
      *      8   *   6
      *      *   7   *
      */
-    private Identifier getCoverTexture(int cover) {
+    private ResourceLocation getCoverTexture(int cover) {
         return switch (cover) {
 
             case -678 -> COVER_678_INVERTED;
@@ -168,11 +169,14 @@ public class iDogLidFeatureRenderer<T extends iDogEntity, M extends iDogEntityMo
 
     //ONLY ONE LAYER AT A TIME!
     @Override
-    public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light,
-            T idogEntity, float limbAngle, float limbDistance, float tickDelta,
-            float animationProgress, float headYaw, float headPitch) {
+    public void render(PoseStack poseStack, MultiBufferSource buffer, int packedLight, T iDog,
+                       float limbSwing, float limbSwingAmount, float partialTicks,
+                       float ageInTicks, float netHeadYaw, float netHeadPitch) {
 
-        VertexConsumer eyeVertexConsumerThree = vertexConsumers.getBuffer(RenderLayer.getArmorCutoutNoCull(getCoverTexture(idogEntity.getEyeCover())));
-        this.getContextModel().render(matrices, eyeVertexConsumerThree, light, OverlayTexture.DEFAULT_UV, 1.0F, 1.0F, 1.0F, 1.0F);
+        RenderType lidLayer = RenderType.armorCutoutNoCull(getCoverTexture(iDog.getEyeCover()));
+        VertexConsumer vc = buffer.getBuffer(lidLayer);
+
+        this.getParentModel().renderToBuffer(poseStack, vc, packedLight, OverlayTexture.NO_OVERLAY,
+                1.0F, 1.0F, 1.0F, 1.0F);
     }
 }

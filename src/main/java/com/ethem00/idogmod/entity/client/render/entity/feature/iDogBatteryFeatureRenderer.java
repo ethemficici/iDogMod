@@ -3,32 +3,32 @@ package com.ethem00.idogmod.entity.client.render.entity.feature;
 import com.ethem00.idogmod.entity.client.iDogEntityModel;
 import com.ethem00.idogmod.entity.iDogEntity;
 import com.ethem00.idogmod.iDogMod;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.entity.feature.EyesFeatureRenderer;
-import net.minecraft.client.render.entity.feature.FeatureRendererContext;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.entity.RenderLayerParent;
+import net.minecraft.client.renderer.entity.layers.EyesLayer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 import static org.apache.commons.lang3.RandomUtils.nextInt;
 
 
-@Environment(EnvType.CLIENT)
-public class iDogBatteryFeatureRenderer<T extends iDogEntity, M extends iDogEntityModel<T>> extends EyesFeatureRenderer<T, M> {
-    private static final RenderLayer BATTERY_100 = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/battery/idog_battery_100.png"));
-    private static final RenderLayer BATTERY_75 = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/battery/idog_battery_75.png"));
-    private static final RenderLayer BATTERY_50 = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/battery/idog_battery_50.png"));
-    private static final RenderLayer BATTERY_25 = RenderLayer.getEyes(new Identifier(iDogMod.MOD_ID, "textures/entity/idog/battery/idog_battery_25.png"));
+@OnlyIn(Dist.CLIENT)
+public class iDogBatteryFeatureRenderer<T extends iDogEntity, M extends iDogEntityModel<T>> extends EyesLayer<T, M> {
+    private static final RenderType BATTERY_100 = RenderType.eyes(ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/battery/idog_battery_100.png"));
+    private static final RenderType BATTERY_75 = RenderType.eyes(ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/battery/idog_battery_75.png"));
+    private static final RenderType BATTERY_50 = RenderType.eyes(ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/battery/idog_battery_50.png"));
+    private static final RenderType BATTERY_25 = RenderType.eyes(ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/battery/idog_battery_25.png"));
 
-    public iDogBatteryFeatureRenderer(FeatureRendererContext<T, M> featureRendererContext) {
+    public iDogBatteryFeatureRenderer(RenderLayerParent<T, M> featureRendererContext) {
         super(featureRendererContext);
     }
 
-    private RenderLayer getBatteryTexture(float health, Boolean tamed) {
+    private RenderType getBatteryTexture(float health, Boolean tamed) {
 
         //Battery texture is 5x3. Maybe redo to check increments of 20.
         if(tamed) {
@@ -46,16 +46,20 @@ public class iDogBatteryFeatureRenderer<T extends iDogEntity, M extends iDogEnti
     }
 
     @Override
-    public RenderLayer getEyesTexture() {
+    public RenderType renderType() {
         return BATTERY_100;
     }
 
     @Override
-    public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light,
-            T idogEntity, float limbAngle, float limbDistance, float tickDelta,
-            float animationProgress, float headYaw, float headPitch) {
+    public void render(PoseStack poseStack, MultiBufferSource buffer, int packedLight, T iDog,
+                       float limbSwing, float limbSwingAmount, float partialTicks,
+                       float ageInTicks, float netHeadYaw, float netHeadPitch) {
 
-        VertexConsumer batteryVertexConsumer = vertexConsumers.getBuffer(this.getBatteryTexture(idogEntity.getHealth(), idogEntity.isTamed()));
-        this.getContextModel().render(matrices, batteryVertexConsumer, 15728640, OverlayTexture.DEFAULT_UV, 1.0F, 1.0F, 1.0F, 1.0F);
+
+        RenderType batteryLayer = this.getBatteryTexture(iDog.getHealth(), iDog.isTame());
+        VertexConsumer vc = buffer.getBuffer(batteryLayer);
+
+        this.getParentModel().renderToBuffer(poseStack, vc, 15728640, OverlayTexture.NO_OVERLAY,
+                1.0F, 1.0F, 1.0F, 1.0F);
     }
 }

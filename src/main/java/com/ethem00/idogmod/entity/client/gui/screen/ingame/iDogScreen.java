@@ -24,8 +24,10 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
-@Environment(EnvType.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class iDogScreen extends HandledScreen<iDogScreenHandler> {
     private static final Identifier SCREEN_TEXTURE = new Identifier(iDogMod.MOD_ID, "textures/gui/container/idog_screen.png");
     private final iDogEntity idog;
@@ -78,7 +80,7 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
         this.drawMouseoverTooltip(context, mouseX, mouseY);
     }
 
-    @Environment(EnvType.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     private void typeBasedPacketSwitch(int type) {
         switch(type) {
             case -10 -> this.sendButtonPacket(-10);     //Vol -10 Packet
@@ -99,7 +101,7 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
         }
     }
 
-    @Environment(EnvType.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     private void sendButtonPacket(int packetType) {
         if (this.client == null || this.idog == null) return;
 
@@ -135,7 +137,7 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
         addDrawableChild(new iDogEjectWidget(this, x + 97, y + 51, 202, 192, 54, 18, Text.empty(), 4) {});
     }
 
-    @Environment(EnvType.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     abstract static class iDogEjectWidget extends iDogScreenWidget {
         public iDogEjectWidget(iDogScreen screen, int x, int y, int u, int v, int width, int height, Text message, int buttonType) {
             super(screen, x, y, u, v, width, height, message, buttonType);
@@ -184,7 +186,7 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
         }
     }
 
-    @Environment(EnvType.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     abstract static class iDogSpeakerWidget extends iDogStateWidget {
         public iDogSpeakerWidget(iDogScreen screen, int x, int y, int u, int v, int width, int height, Text message, int buttonType) {
             super(screen, x, y, u, v, width, height, message, buttonType);
@@ -214,7 +216,7 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
         }
     }
 
-    @Environment(EnvType.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     abstract static class iDogStateWidget extends iDogScreenWidget {
         public iDogStateWidget(iDogScreen screen, int x, int y, int u, int v, int width, int height, Text message, int buttonType) {
             super(screen, x, y, u, v, width, height, message, buttonType);
@@ -241,7 +243,7 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
         }
     }
 
-    @Environment(EnvType.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     abstract static class iDogScreenWidget extends ClickableWidget implements iDogScreen.iDogButtonWidget {
         protected int u;
         protected int v;
@@ -285,7 +287,7 @@ public class iDogScreen extends HandledScreen<iDogScreenHandler> {
         }
     }
 
-    @Environment(EnvType.CLIENT)
+    @OnlyIn(Dist.CLIENT)
     interface iDogButtonWidget {
         void tick(int level);
     }

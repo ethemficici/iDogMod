@@ -46,6 +46,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.ticks.ContainerSingleItem;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
@@ -486,13 +488,17 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
             case "music_disc_blue" -> this.random.nextInt(music_disc_randomBlue_variants.length-1);
             case "music_disc_rainbow" -> this.random.nextInt(music_disc_randomRainbow_variants.length-1);
             case "music_disc_creeper" -> this.random.nextInt(music_disc_randomCreeper_variants.length-1);
-            default -> { int rand = this.random.nextInt(5);
+            case "music_disc_ender" -> this.random.nextInt(music_disc_randomEnder_variants.length-1);
+            case "music_disc_berries" -> this.random.nextInt(music_disc_randomBerries_variants.length-1);
+            default -> { int rand = this.random.nextInt(7);
                 switch (rand) {
                     case 0 -> setCurrentDisc("music_disc_red");
                     case 1 -> setCurrentDisc("music_disc_green");
                     case 2 -> setCurrentDisc("music_disc_blue");
                     case 3 -> setCurrentDisc("music_disc_rainbow");
-                    case 4 -> setCurrentDisc("music_disc_creeper"); //If you add more later, don't forget the bounds!
+                    case 4 -> setCurrentDisc("music_disc_creeper");
+                    case 5 -> setCurrentDisc("music_disc_berries");
+                    case 6 -> setCurrentDisc("music_disc_ender"); //If you add more later, don't forget the bounds!
                 }
                 yield getEyeVariantFromDisc(getCurrentDisc());
             }
@@ -567,11 +573,14 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
             case "music_disc_blocks" -> 85;
             case "music_disc_cat" -> 112;
             case "music_disc_chirp" -> 110;
+            case "music_disc_creator" -> 81;
+            case "music_disc_creator_music_box" -> 111;
             case "music_disc_far" -> 130;
             case "music_disc_mall" -> 115;
             case "music_disc_mellohi" -> 91;
             case "music_disc_otherside" -> 92;
             case "music_disc_pigstep" -> 113;
+            case "music_disc_precipice" -> 136;
             case "music_disc_relic" -> 136;
             case "music_disc_stal" -> 105;
             case "music_disc_strad" -> 188;
@@ -1324,6 +1333,7 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     }
 
     //Forces the client to be in sync with the server. Prevents early song cancellation
+    @OnlyIn(Dist.CLIENT)
     public void forceSync(ItemStack itemStack, String currentDisc) {
 
         if(this.level().isClientSide)

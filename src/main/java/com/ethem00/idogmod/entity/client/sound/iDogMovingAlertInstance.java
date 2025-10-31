@@ -2,15 +2,14 @@ package com.ethem00.idogmod.entity.client.sound;
 
 import com.ethem00.idogmod.entity.iDogEntity;
 import com.ethem00.idogmod.network.ModPackets;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.minecraft.client.sound.MovingSoundInstance;
-import net.minecraft.client.sound.SoundInstance;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
+import io.netty.buffer.Unpooled;
+import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
+import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 
-public class iDogMovingAlertInstance extends MovingSoundInstance {
+public class iDogMovingAlertInstance extends AbstractTickableSoundInstance {
     private iDogEntity iDog;
     private float storedVolume;
     private float secondsInTicks;
@@ -18,9 +17,9 @@ public class iDogMovingAlertInstance extends MovingSoundInstance {
     private boolean doOnce;
 
     public iDogMovingAlertInstance(iDogEntity iDogPassed, SoundEvent sound, float volumePassed, float seconds) {
-        super(sound, SoundCategory.RECORDS, SoundInstance.createRandom());
+        super(sound, SoundSource.RECORDS, SoundInstance.createUnseededRandom());
         this.iDog = iDogPassed;
-        this.repeat = false;
+        this.looping = false;
         this.storedVolume = this.iDog.getSongVolume(true);
         this.ticks = 0;
         this.secondsInTicks = seconds * 20;
@@ -36,8 +35,8 @@ public class iDogMovingAlertInstance extends MovingSoundInstance {
         this.z = iDog.getZ();
 
         //Debug
-        System.out.println("iDog is now playing: " + sound.getId().toString());
-        System.out.println("With volume of: " + volume);
+        //System.out.println("iDog is now playing: " + sound.getId().toString());
+        //System.out.println("With volume of: " + volume);
     }
 
     @Override
@@ -48,17 +47,17 @@ public class iDogMovingAlertInstance extends MovingSoundInstance {
         this.z = this.iDog.getZ();
 
         if(iDog.isRemoved()) {
-            this.setDone();
+            this.isStopped();
             System.out.println("iDog alert playback has stopped.");
             System.out.println("Due to iDog entity removal.");
             this.packetSender();
-            this.setDone();
+            this.stop();
         }
         if(!iDog.getAlertBool()) {
             System.out.println("iDog alert playback has stopped.");
             System.out.println("Due to iDog alerts disabled.");
             this.packetSender();
-            this.setDone();
+            this.stop();
         }
 
         if(this.ticks >= this.secondsInTicks && !this.doOnce) {
@@ -73,11 +72,12 @@ public class iDogMovingAlertInstance extends MovingSoundInstance {
     private void packetSender() {
         if (this.iDog == null) return;
 
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeInt(this.iDog.getId());   // Send the iDog entity ID
-        buf.writeBoolean(true);      // Send the boolean as true, so server knows the alert has ended.
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+        buf.writeInt(this.iDog.getId());
+        buf.writeBoolean(true);
 
         System.out.println("Packet of TRUE being sent by entity " + this.iDog.getId());
-        ClientPlayNetworking.send(ModPackets.IDOG_ALERT_PACKET, buf);
+
+        ModPackets.CHANNEL.sendToServer(new IDogAlertPacket(buf));
     }
 }

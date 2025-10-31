@@ -6,7 +6,7 @@ https://easings.net/
 Easing functions provided by Andrey Sitnik and Ivan Solovev
  */
 
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 public interface iDogEasing {
 
@@ -17,12 +17,12 @@ public interface iDogEasing {
     default float easeInCubic(float delta) {
 
 
-        return MathHelper.clamp(delta * delta * delta, 0, 1);
+        return Mth.clamp(delta * delta * delta, 0, 1);
     }
     // 2
     default float easeOutCubic(float delta) {
 
-        float d = MathHelper.clamp(delta, 0.0F, 1.0F);
+        float d = Mth.clamp(delta, 0.0F, 1.0F);
         return 1 - (float) StrictMath.pow(1 - d, 3);
     }
 

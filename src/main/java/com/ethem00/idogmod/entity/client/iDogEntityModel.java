@@ -6,10 +6,13 @@ package com.ethem00.idogmod.entity.client;
 
 import com.ethem00.idogmod.entity.client.render.entity.animation.iDogAnimations;
 import com.ethem00.idogmod.entity.iDogEntity;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.*;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.util.Mth;
 
 
@@ -108,5 +111,9 @@ public class iDogEntityModel<T extends iDogEntity> extends HierarchicalModel<T> 
     @Override
     public ModelPart root() {
         return idog;
+    }
+
+    public void render(PoseStack matrices, VertexConsumer vertexConsumer, int i, int noOverlay, float v, float v1, float v2, float v3) {
+        idog.render(matrices, vertexConsumer, i, noOverlay, v, v1, v2, v3);
     }
 }

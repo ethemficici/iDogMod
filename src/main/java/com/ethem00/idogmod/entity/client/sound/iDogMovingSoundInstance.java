@@ -1,19 +1,19 @@
 package com.ethem00.idogmod.entity.client.sound;
 
 import com.ethem00.idogmod.entity.iDogEntity;
-import net.minecraft.client.sound.MovingSoundInstance;
-import net.minecraft.client.sound.SoundInstance;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.math.random.Random;
+import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
+import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 
-public class iDogMovingSoundInstance extends MovingSoundInstance {
+
+public class iDogMovingSoundInstance extends AbstractTickableSoundInstance {
     private iDogEntity iDog;
 
     public iDogMovingSoundInstance(iDogEntity iDogPassed, SoundEvent sound, float volumePassed) {
-        super(sound, SoundCategory.RECORDS, SoundInstance.createRandom());
+        super(sound, SoundSource.RECORDS, SoundInstance.createUnseededRandom());
         this.iDog = iDogPassed;
-        this.repeat = false;
+        this.looping = false;
 
         if(volumePassed <= 0F) {
             this.volume = 0.05F;
@@ -25,8 +25,8 @@ public class iDogMovingSoundInstance extends MovingSoundInstance {
         this.z = iDog.getZ();
 
         //Debug
-        System.out.println("iDog is now playing: " + sound.getId().toString());
-        System.out.println("With volume of: " + volume);
+        //System.out.println("iDog is now playing: " + sound.getId().toString());
+        //System.out.println("With volume of: " + volume);
     }
 
     @Override
@@ -37,13 +37,13 @@ public class iDogMovingSoundInstance extends MovingSoundInstance {
         this.z = this.iDog.getZ();
 
         if(iDog.isRemoved()) {
-            this.setDone();
+            this.isStopped();
             System.out.println("iDog song playback has stopped.");
             System.out.println("Due to iDog entity removal.");
             System.out.println("Volume was: " + volume);
         }
         if(!iDog.isPlayingRecord()) {
-            this.setDone();
+            this.isStopped();
             System.out.println("iDog song playback has stopped.");
             System.out.println("Due to record removal.");
             System.out.println("Volume was: " + volume);
