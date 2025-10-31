@@ -2,6 +2,7 @@ package com.ethem00.idogmod.entity.client.sound;
 
 import com.ethem00.idogmod.entity.iDogEntity;
 import com.ethem00.idogmod.network.ModPackets;
+import com.ethem00.idogmod.network.iDogAlertFinishedPacketC2S;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
@@ -74,10 +75,8 @@ public class iDogMovingAlertInstance extends AbstractTickableSoundInstance {
 
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         buf.writeInt(this.iDog.getId());
-        buf.writeBoolean(true);
 
-        System.out.println("Packet of TRUE being sent by entity " + this.iDog.getId());
-
-        ModPackets.CHANNEL.sendToServer(new IDogAlertPacket(buf));
+        System.out.println("Packet of -100 being sent by entity " + this.iDog.getId());
+        ModPackets.CHANNEL.sendToServer(new iDogAlertFinishedPacketC2S(buf));
     }
 }

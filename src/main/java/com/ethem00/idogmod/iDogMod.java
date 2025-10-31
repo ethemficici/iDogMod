@@ -1,7 +1,11 @@
 package com.ethem00.idogmod;
 
+import com.ethem00.idogmod.entity.client.gui.screen.ingame.iDogScreen;
+import com.ethem00.idogmod.network.ModPackets;
+import com.ethem00.idogmod.screen.ModMenuTypes;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
@@ -44,22 +48,25 @@ public class iDogMod
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
 
 
-    public iDogMod(FMLJavaModLoadingContext context)
-    {
-        IEventBus modEventBus = context.getModEventBus();
+        public iDogMod(FMLJavaModLoadingContext context)
+        {
+            IEventBus modEventBus = context.getModEventBus();
 
-        // Register the commonSetup method for modloading
-        modEventBus.addListener(this::commonSetup);
+            // Register the commonSetup method for modloading
+            modEventBus.addListener(this::commonSetup);
 
-        // Register ourselves for server and other game events we are interested in
-        MinecraftForge.EVENT_BUS.register(this);
+            // Register ourselves for server and other game events we are interested in
+            MinecraftForge.EVENT_BUS.register(this);
 
-        // Register the item to a creative tab
-        modEventBus.addListener(this::addCreative);
+            // Register the item to a creative tab
+            modEventBus.addListener(this::addCreative);
 
-        // Register our mod's ForgeConfigSpec so that Forge can create and load the config file for us
-        context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
-    }
+            // Register our mod's ForgeConfigSpec so that Forge can create and load the config file for us
+            context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+
+            ModPackets.register();
+            ModMenuTypes.MENUS.register(modEventBus);
+        }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
         // Some common setup code
@@ -88,6 +95,7 @@ public class iDogMod
         {
             // Some client setup code
             LOGGER.info("HELLO FROM IDOGMOD CLIENT SETUP");
+            MenuScreens.register(ModMenuTypes.IDOG_MENU.get(), iDogScreen::new);
         }
     }
 }

@@ -1,62 +1,28 @@
 package com.ethem00.idogmod.network;
 
-import com.ethem00.idogmod.entity.iDogEntity;
 import com.ethem00.idogmod.iDogMod;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.Entity;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.simple.SimpleChannel;
 
 public class ModPackets {
-    public static final Identifier IDOG_BUTTON_PACKET = new Identifier(iDogMod.MOD_ID, "idog_button_packet");
-    public static final Identifier IDOG_ALERT_PACKET = new Identifier(iDogMod.MOD_ID, "idog_alert_packet");
 
-    public static void registerC2SPackets() {
-        iDogMod.LOGGER.info("Registering client to server packets for " + iDogMod.MOD_ID);
+    private static int packetId = 0;
+    private static final String PROTOCOL_VERSION = "1";
 
-        ServerPlayNetworking.registerGlobalReceiver(IDOG_BUTTON_PACKET, (server, player, handler, buf, responseSender) -> {
-            int entityId = buf.readInt();
-            int packetType = buf.readInt();
+    public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
+            ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "network"),
+            () -> PROTOCOL_VERSION,
+            PROTOCOL_VERSION::equals,
+            PROTOCOL_VERSION::equals
+    );
 
-            //System.out.println("Packet of " + packetType + " received from entity " + entityId);
+    public static void register() {
+        CHANNEL.registerMessage(packetId++, iDogAlertFinishedPacketC2S.class, iDogAlertFinishedPacketC2S::encode, iDogAlertFinishedPacketC2S::new, iDogAlertFinishedPacketC2S::handle);
+        CHANNEL.registerMessage(packetId++, iDogButtonPressedPacketC2S.class, iDogButtonPressedPacketC2S::encode, iDogButtonPressedPacketC2S::new, iDogButtonPressedPacketC2S::handle);
+        CHANNEL.registerMessage(packetId++, iDogPlayAlertPacketS2C.class, iDogPlayAlertPacketS2C::encode, iDogPlayAlertPacketS2C::new, iDogPlayAlertPacketS2C::handle);
+        CHANNEL.registerMessage(packetId++, iDogPlayDiscPacketS2C.class, iDogPlayDiscPacketS2C::encode, iDogPlayDiscPacketS2C::new, iDogPlayDiscPacketS2C::handle);
+        //iDogMod.LOGGER.info("Registered network packets for " + iDogMod.MOD_ID);
+    }
 
-            server.execute(() -> {
-                Entity entity = player.getWorld().getEntityById(entityId);
-                if (entity instanceof iDogEntity idog) {
-                    // iDog has switch cases varying on int.
-                    // -10, -5, 5, 10 all decrement or increment volume
-                    // -1, 1 either mute or set volume to max.
-                    // -2, 2 either disable or enable looping.
-                    // -3, 3 either disable or enable entity alerts.
-                    idog.handleReceivedPacket(packetType);
-                }
-            });
-        });
-
-        ServerPlayNetworking.registerGlobalReceiver(IDOG_ALERT_PACKET, (server, player, handler, buf, responseSender) -> {
-            int entityId = buf.readInt();
-            boolean bufBool = buf.readBoolean();
-
-            //System.out.println("Packet of " + packetType + " received from entity " + entityId);
-
-            server.execute(() -> {
-                Entity entity = player.getWorld().getEntityById(entityId);
-                if (entity instanceof iDogEntity idog) {
-
-                    if(bufBool) {
-                        idog.handleReceivedPacket(-100);
-                    } else {
-                        //ERROR
-                        System.out.println("Packet of TRUE received as FALSE from entity " + entityId);
-                    }
-                    // iDog has switch cases varying on int.
-                    // -10, -5, 5, 10 all decrement or increment volume
-                    // -1, 1 either mute or set volume to max.
-                    // -2, 2 either disable or enable looping.
-                    // -3, 3 either disable or enable entity alerts.
-                }
-            });
-        });
-    };
 }
-
-

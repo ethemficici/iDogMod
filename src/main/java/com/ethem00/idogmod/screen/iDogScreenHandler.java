@@ -1,24 +1,24 @@
 package com.ethem00.idogmod.screen;
 
 import com.ethem00.idogmod.entity.iDogEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 
-public class iDogScreenHandler extends ScreenHandler {
-    private final Inventory inventory;
+public class iDogScreenHandler extends AbstractContainerMenu {
+    private final SimpleContainer inventory;
     private final iDogEntity idog;
     private float volume;
     private boolean loopSong;
     private boolean doAlerts;
 
-    public iDogScreenHandler(int syncId, PlayerInventory playerInventory, Inventory inventory, iDogEntity idog) {
+    public iDogScreenHandler(int syncId, Inventory playerInventory, Container inventory, iDogEntity idog) {
         super(ModScreenHandlers.IDOG_SCREEN_HANDLER, syncId);
-        this.inventory = new SimpleInventory(0); //Dummy inventory
+        this.inventory = new SimpleContainer(0); //Dummy inventory
         this.idog = idog;
         this.volume = idog.getSongVolume(true);
         this.loopSong = idog.getLoopBool();
@@ -36,19 +36,19 @@ public class iDogScreenHandler extends ScreenHandler {
     }
 
     @Override
-    public ItemStack quickMove(PlayerEntity player, int slot) { //TODO: ????
+    public ItemStack quickMoveStack(Player player, int slot) { //TODO: ????
         ItemStack itemStack = ItemStack.EMPTY;
         return itemStack;
     }
 
     @Override
-    public boolean canUse(PlayerEntity player) {
+    public boolean stillValid(Player player) {
         return true;
     }
 
     @Override
-    public void onClosed(PlayerEntity player) {
-        super.onClosed(player);
-        this.inventory.onClose(player);
+    public void removed(Player player) {
+        super.removed(player);
+        this.inventory.stopOpen(player);
     }
 }

@@ -8,9 +8,10 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.util.Identifier;
+import net.minecraft.world.inventory.MenuType;
 
 public class ModScreenHandlers {
-    public static final ScreenHandlerType<iDogScreenHandler> IDOG_SCREEN_HANDLER =
+    public static final MenuType<iDogScreenHandler> IDOG_SCREEN_HANDLER =
             Registry.register(Registries.SCREEN_HANDLER, new Identifier(iDogMod.MOD_ID, "idog"),
                     new ExtendedScreenHandlerType<>((syncId, inventory, buf) -> {
 

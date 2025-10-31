@@ -1,0 +1,71 @@
+package com.ethem00.idogmod.network;
+
+import com.ethem00.idogmod.entity.client.sound.iDogMovingSoundInstance;
+import com.ethem00.idogmod.entity.iDogEntity;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.RecordItem;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.function.Supplier;
+
+public class iDogPlayDiscPacketS2C {
+
+    private final int entityID;
+    private final ResourceLocation resource;
+
+    public iDogPlayDiscPacketS2C(int pID, ResourceLocation pResource) {
+        this.entityID = pID;
+        this.resource = pResource;
+    }
+
+    public iDogPlayDiscPacketS2C(FriendlyByteBuf buf) {
+        this.entityID = buf.readInt();
+        this.resource = buf.readResourceLocation();
+    }
+
+    public void encode(FriendlyByteBuf buf) {
+        buf.writeInt(entityID);
+        buf.writeResourceLocation(resource);
+    }
+
+    public void handle(Supplier<NetworkEvent.Context> context) {
+        NetworkEvent.Context cntx = context.get();
+
+        if (context.get().getDirection().getReceptionSide().isClient()) {
+            cntx.enqueueWork(() -> handleClient(context));
+        }
+
+        cntx.setPacketHandled(true);
+    }
+
+
+    public void handleClient(Supplier<NetworkEvent.Context> context) {
+        Minecraft minecraft = Minecraft.getInstance();
+        Level level = minecraft.level;
+        if (level == null) return;
+
+        Entity entity = level.getEntity(entityID);
+
+        if (entity instanceof iDogEntity dog) {
+
+            Item item = level.registryAccess()
+                    .registryOrThrow(Registries.ITEM)
+                    .get(resource);
+
+            if(item instanceof RecordItem) {
+
+                SoundEvent sound = ((RecordItem) item).getSound();
+
+                minecraft.getSoundManager().play(
+                        new iDogMovingSoundInstance(dog, sound, dog.getSongVolume(false)));
+            }
+        }
+    }
+}
