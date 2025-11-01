@@ -17,7 +17,7 @@ public class iDogScreenHandler extends AbstractContainerMenu {
     private boolean doAlerts;
 
     public iDogScreenHandler(int syncId, Inventory playerInventory, Container inventory, iDogEntity idog) {
-        super(ModScreenHandlers.IDOG_SCREEN_HANDLER, syncId);
+        super(ModMenuTypes.IDOG_MENU.get(), syncId);
         this.inventory = new SimpleContainer(0); //Dummy inventory
         this.idog = idog;
         this.volume = idog.getSongVolume(true);

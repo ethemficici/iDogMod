@@ -15,10 +15,6 @@ import net.minecraft.resources.ResourceLocation;
 
 public class iDogRenderer extends MobRenderer<iDogEntity, iDogEntityModel<iDogEntity>> {
     private static final ResourceLocation BODY_TEXTURE = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/idog.png");
-    private static final ResourceLocation BODY_TEXTURE_DAY = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/idog_day.png");
-    private static final ResourceLocation BODY_TEXTURE_RED = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/idog_red.png");
-    private static final ResourceLocation BODY_TEXTURE_GREEN = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/idog_green.png");
-    private static final ResourceLocation BODY_TEXTURE_BLUE = ResourceLocation.fromNamespaceAndPath(iDogMod.MOD_ID, "textures/entity/idog/idog_blue.png");
 
     public iDogRenderer(EntityRendererProvider.Context context) {
         super(context, new iDogEntityModel<>(context.bakeLayer(ModModelLayers.IDOG)), 0.5f);

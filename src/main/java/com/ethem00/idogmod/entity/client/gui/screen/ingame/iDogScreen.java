@@ -3,10 +3,8 @@ package com.ethem00.idogmod.entity.client.gui.screen.ingame;
 import com.ethem00.idogmod.entity.iDogEntity;
 import com.ethem00.idogmod.iDogMod;
 import com.ethem00.idogmod.network.ModPackets;
-import com.ethem00.idogmod.network.ModPacketsOLD;
 import com.ethem00.idogmod.network.iDogButtonPressedPacketC2S;
 import com.ethem00.idogmod.screen.iDogScreenHandler;
-import com.mojang.authlib.minecraft.client.MinecraftClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -19,7 +17,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.RecordItem;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.network.PacketDistributor;
 
 @OnlyIn(Dist.CLIENT)
 public class iDogScreen extends AbstractContainerScreen<iDogScreenHandler> {

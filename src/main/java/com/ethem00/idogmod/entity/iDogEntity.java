@@ -877,7 +877,7 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
 
                 ModPackets.CHANNEL.send(
                         PacketDistributor.ALL.noArg(),
-                        new iDogPlayDiscPacketS2C(this.getId(), BuiltInRegistries.ITEM.getKey(musicDisc)) //Expects ResourceLocation, but second parameter is providing an int?
+                        new iDogPlayDiscPacketS2C(this.getId(), BuiltInRegistries.ITEM.getKey(musicDisc), this.entityData.get(CURRENT_DISC)) //Expects ResourceLocation, but second parameter is providing an int?
                 );
 
             }
@@ -1210,28 +1210,29 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     @Override
     protected SoundEvent getAmbientSound() {
         if (this.isAngry()) {
-            return ModSounds.ENTITY_IDOG_GROWL;
+            return ModSounds.ENTITY_IDOG_GROWL.get(); //Required Type: SoundEvent, Provided: RegistryObject
         } else if (this.random.nextInt(3) == 0) {
-            return this.isTame() && this.getHealth() < 10.0F ? ModSounds.ENTITY_IDOG_WHINE : ModSounds.ENTITY_IDOG_PANT;
+            return this.isTame() && this.getHealth() < 10.0F ? ModSounds.ENTITY_IDOG_WHINE.get() : ModSounds.ENTITY_IDOG_PANT.get(); //Required Type: SoundEvent, Provided: RegistryObject
         } else {
-            return ModSounds.ENTITY_IDOG_AMBIENT;
+            return ModSounds.ENTITY_IDOG_AMBIENT.get(); //Required Type: SoundEvent, Provided: RegistryObject
         }
     }
 
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
-        return ModSounds.ENTITY_IDOG_HURT;
+        return ModSounds.ENTITY_IDOG_HURT.get(); //Required Type: SoundEvent, Provided: RegistryObject
     }
 
     @Override
     protected SoundEvent getDeathSound() {
-        return ModSounds.ENTITY_IDOG_DEATH;
+        return ModSounds.ENTITY_IDOG_DEATH.get(); //Required Type: SoundEvent, Provided: RegistryObject
     }
 
     @Override
     protected float getSoundVolume() {
         return 0.4F;
     }
+
 
     @Override
     protected void playStepSound(BlockPos pos, BlockState state) {
@@ -1286,6 +1287,7 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
     }
 
     //Screens
+    @Override
     public Component getDisplayName() {
         if(this.hasCustomName()) {
           return this.getCustomName();
@@ -1298,27 +1300,6 @@ public class iDogEntity extends TamableAnimal implements NeutralMob, ContainerSi
         super.die(damageSource);
         this.spawnAtLocation(this.entityData.get(DISC_ITEMSTACK));
         this.spawnAtLocation(new ItemStack(Items.IRON_INGOT, 1 + this.random.nextInt(3)));
-    }
-
-    @Override
-    public @Nullable ScreenHandler createMenu(int syncId, Inventory playerInventory, Player player) {
-
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeInt(this.getId()); //iDog entity ID
-        //We provide this to the screenHandler as our class Implements Inventory
-        //Only the Server has the Inventory at the start, this will be synced to the client in the ScreenHandler
-        return new iDogScreenHandler(syncId, playerInventory, this, this);
-    }
-
-    @Override
-    public void writeScreenOpeningData(ServerPlayer player, PacketByteBuf buf) {
-        buf.writeInt(this.getId()); //iDog entity ID
-
-        /* Redundant? Can get from entity.
-        buf.writeFloat(getSongVolume()); //Volume
-        buf.writeBoolean(getLoopBool()); //Loop
-        buf.writeBoolean(getAlertBool()); //Alerts
-         */
     }
 
     //Forces the client to be in sync with the server. Prevents early song cancellation

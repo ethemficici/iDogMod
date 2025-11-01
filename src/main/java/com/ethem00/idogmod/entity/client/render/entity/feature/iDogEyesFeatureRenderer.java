@@ -96,10 +96,10 @@ public class iDogEyesFeatureRenderer<T extends iDogEntity, M extends iDogEntityM
                        float limbSwing, float limbSwingAmount, float partialTicks,
                        float ageInTicks, float netHeadYaw, float netHeadPitch) {
 
-        RenderType eyeLayer = RenderType.eyes(getEyesIdentifier(iDog.getCurrentDisc(), iDog.getEyeVariant()));
+        RenderType eyeLayer = RenderType.entityTranslucentEmissive(getEyesIdentifier(iDog.getCurrentDisc(), iDog.getEyeVariant()));
         VertexConsumer vc = buffer.getBuffer(eyeLayer);
 
         this.getParentModel().renderToBuffer(poseStack, vc, 15728640, OverlayTexture.NO_OVERLAY,
-                1.0F, 1.0F, 1.0F, 1.0F);
+                1.0F, 1.0F, 1.0F, iDog.getEyeAlpha());
     }
 }

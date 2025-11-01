@@ -1,22 +1,25 @@
 package com.ethem00.idogmod;
 
+import com.ethem00.idogmod.entity.ModEntities;
+import com.ethem00.idogmod.entity.client.ModModelLayers;
 import com.ethem00.idogmod.entity.client.gui.screen.ingame.iDogScreen;
+import com.ethem00.idogmod.entity.client.iDogEntityModel;
+import com.ethem00.idogmod.entity.client.iDogRenderer;
+import com.ethem00.idogmod.event.ModEventBusEvents;
+import com.ethem00.idogmod.item.ModItems;
+import com.ethem00.idogmod.loot.ModLootModifiers;
 import com.ethem00.idogmod.network.ModPackets;
 import com.ethem00.idogmod.screen.ModMenuTypes;
+import com.ethem00.idogmod.sound.ModSounds;
 import com.mojang.logging.LogUtils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
@@ -29,7 +32,6 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -52,12 +54,18 @@ public class iDogMod
         {
             IEventBus modEventBus = context.getModEventBus();
 
+            //!!!WARNING!!!//
+            //Register entities BEFORE items, if you have spawn eggs!
+            ModEntities.register(modEventBus);
+            ModItems.register(modEventBus);
+            ModSounds.register(modEventBus);
+
+
             // Register the commonSetup method for modloading
             modEventBus.addListener(this::commonSetup);
 
             // Register ourselves for server and other game events we are interested in
             MinecraftForge.EVENT_BUS.register(this);
-
             // Register the item to a creative tab
             modEventBus.addListener(this::addCreative);
 
@@ -66,6 +74,7 @@ public class iDogMod
 
             ModPackets.register();
             ModMenuTypes.MENUS.register(modEventBus);
+            ModLootModifiers.register(modEventBus);
         }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
@@ -91,11 +100,24 @@ public class iDogMod
     public static class ClientModEvents
     {
         @SubscribeEvent
+        public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
+            event.registerLayerDefinition(ModModelLayers.IDOG, iDogEntityModel::createBodyLayer);
+        }
+
+        @SubscribeEvent
+        public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+            event.registerEntityRenderer(ModEntities.IDOG.get(), iDogRenderer::new);
+        }
+
+        @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event)
         {
             // Some client setup code
             LOGGER.info("HELLO FROM IDOGMOD CLIENT SETUP");
+            EntityRenderers.register(ModEntities.IDOG.get(), iDogRenderer::new);
             MenuScreens.register(ModMenuTypes.IDOG_MENU.get(), iDogScreen::new);
+
+
         }
     }
 }

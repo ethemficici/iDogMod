@@ -52,13 +52,13 @@ public class iDogPlayAlertPacketS2C {
         if (entity instanceof iDogEntity dog) {
 
             SoundEvent sound = switch(alertType) {
-                case -1 -> ModSounds.ENTITY_IDOG_ALERT_HAPPY;
-                case 0 -> ModSounds.ENTITY_IDOG_ALERT_ZOMBIE;
-                case 1 -> ModSounds.ENTITY_IDOG_ALERT_SKELETON;
-                case 2 -> ModSounds.ENTITY_IDOG_ALERT_SPIDER;
-                case 3 -> ModSounds.ENTITY_IDOG_ALERT_CREEPER;
-                case 4 -> ModSounds.ENTITY_IDOG_ALERT_ENDERMAN;
-                default -> ModSounds.ENTITY_IDOG_ALERT_MISC;
+                case -1 -> ModSounds.ENTITY_IDOG_ALERT_HAPPY.get();
+                case 0 -> ModSounds.ENTITY_IDOG_ALERT_ZOMBIE.get();
+                case 1 -> ModSounds.ENTITY_IDOG_ALERT_SKELETON.get();
+                case 2 -> ModSounds.ENTITY_IDOG_ALERT_SPIDER.get();
+                case 3 -> ModSounds.ENTITY_IDOG_ALERT_CREEPER.get();
+                case 4 -> ModSounds.ENTITY_IDOG_ALERT_ENDERMAN.get();
+                default -> ModSounds.ENTITY_IDOG_ALERT_MISC.get();
             };
 
             float seconds = switch(alertType) {

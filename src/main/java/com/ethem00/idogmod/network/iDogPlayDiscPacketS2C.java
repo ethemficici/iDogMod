@@ -9,6 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.RecordItem;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.network.NetworkEvent;
@@ -19,20 +20,24 @@ public class iDogPlayDiscPacketS2C {
 
     private final int entityID;
     private final ResourceLocation resource;
+    private final String currentDisc;
 
-    public iDogPlayDiscPacketS2C(int pID, ResourceLocation pResource) {
+    public iDogPlayDiscPacketS2C(int pID, ResourceLocation pResource, String pCurrentDisc) {
         this.entityID = pID;
         this.resource = pResource;
+        this.currentDisc = pCurrentDisc;
     }
 
     public iDogPlayDiscPacketS2C(FriendlyByteBuf buf) {
         this.entityID = buf.readInt();
         this.resource = buf.readResourceLocation();
+        this.currentDisc = buf.readUtf();
     }
 
     public void encode(FriendlyByteBuf buf) {
         buf.writeInt(entityID);
         buf.writeResourceLocation(resource);
+        buf.writeUtf(currentDisc);
     }
 
     public void handle(Supplier<NetworkEvent.Context> context) {
@@ -62,6 +67,9 @@ public class iDogPlayDiscPacketS2C {
             if(item instanceof RecordItem) {
 
                 SoundEvent sound = ((RecordItem) item).getSound();
+                ItemStack stack = new ItemStack(item, 1);
+
+                dog.forceSync(stack, currentDisc);
 
                 minecraft.getSoundManager().play(
                         new iDogMovingSoundInstance(dog, sound, dog.getSongVolume(false)));

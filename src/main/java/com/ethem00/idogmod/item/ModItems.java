@@ -4,27 +4,26 @@ import com.ethem00.idogmod.entity.ModEntities;
 import com.ethem00.idogmod.iDogMod;
 import com.ethem00.idogmod.sound.ModSounds;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.RecordItem;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
+
+import static net.minecraft.world.item.Rarity.RARE;
 
 public class ModItems {
+    public static final DeferredRegister<Item> ITEMS =
+            DeferredRegister.create(ForgeRegistries.ITEMS, iDogMod.MOD_ID);
 
-    public static final Item MUSIC_DISC_CALM4 = registerItemMethod("music_disc_calm4", new RecordItem(4, ModSounds.MUSIC_DISC_CALM4, new Item.Properties().stacksTo(1), 190));
-    public static final Item iDOG_BOX = registerItemMethod("idog_box", new iDogBoxItem(ModEntities.IDOG, 0, 0, new Item.Properties().stacksTo(1).rarity(Rarity.RARE)));
 
-    private static Item registerItemMethod(String name, Item item) {
-        return Registry.register(Registries.ITEM, Identifier.of(iDogMod.MOD_ID, name), item);
-    }
+    public static final RegistryObject<Item> IDOG_BOX = ITEMS.register("idog_box",
+            () -> new iDogBoxItem(ModEntities.IDOG, 0, 0, new Item.Properties().stacksTo(1).rarity(RARE)));
 
-    public static void registerModItems() {
-        iDogMod.LOGGER.info("Registering modded items from " + iDogMod.MOD_ID);
+    public static final RegistryObject<Item> MUSIC_DISC_CALM4 = ITEMS.register("music_disc_calm4",
+            () -> new RecordItem(4, ModSounds.MUSIC_DISC_CALM4, new Item.Properties().stacksTo(1), 3800));
 
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(entries -> {
-            entries.addAfter(Items.MUSIC_DISC_RELIC, MUSIC_DISC_CALM4);
-        });
-
-        ItemGroupEvents.modifyEntriesEvent(ItemGroups.SPAWN_EGGS).register(entries -> {
-            entries.addAfter(Items.SPAWNER, iDOG_BOX);
-        });
+    public static void register(IEventBus eventBus) {
+        ITEMS.register(eventBus);
     }
 }

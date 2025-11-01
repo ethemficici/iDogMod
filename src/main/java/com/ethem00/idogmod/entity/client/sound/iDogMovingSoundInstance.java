@@ -37,13 +37,13 @@ public class iDogMovingSoundInstance extends AbstractTickableSoundInstance {
         this.z = this.iDog.getZ();
 
         if(iDog.isRemoved()) {
-            this.isStopped();
+            this.stop();
             System.out.println("iDog song playback has stopped.");
             System.out.println("Due to iDog entity removal.");
             System.out.println("Volume was: " + volume);
         }
         if(!iDog.isPlayingRecord()) {
-            this.isStopped();
+            this.stop();
             System.out.println("iDog song playback has stopped.");
             System.out.println("Due to record removal.");
             System.out.println("Volume was: " + volume);
