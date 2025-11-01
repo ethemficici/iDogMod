@@ -1,0 +1,4 @@
+// 1.20.1	2025-11-01T15:29:24.9063594	Global Loot Modifiers : idogmod
+a5ee908977cdaf33322627429bb1f3aac2aba4b6 data/forge/loot_modifiers/global_loot_modifiers.json
+f5ca76e818c13ef216f94abb91d0579473c35a19 data/idogmod/loot_modifiers/calm4_dungeon.json
+d4af39207437bf52fc610a5af68f8c515ce2c90f data/idogmod/loot_modifiers/idog_box_dungeon.json

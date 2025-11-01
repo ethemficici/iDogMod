@@ -29,6 +29,7 @@ public class AddItemModifier extends LootModifier {
 
     @Override
     protected @NotNull ObjectArrayList<ItemStack> doApply(ObjectArrayList<ItemStack> generatedLoot, LootContext context) {
+        System.out.println("iDog loot modifier triggered!");
 
         for(LootItemCondition condition : this.conditions) {
             if(!condition.test(context)) {

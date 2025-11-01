@@ -5,7 +5,6 @@ import com.ethem00.idogmod.item.ModItems;
 import com.ethem00.idogmod.loot.AddItemModifier;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
 import net.minecraftforge.common.data.GlobalLootModifierProvider;
@@ -19,7 +18,10 @@ public class ModGlobalLootModifiersProvider extends GlobalLootModifierProvider {
     @Override
     protected void start() {
         add("idog_box_dungeon", new AddItemModifier(new LootItemCondition[] {
-                new LootTableIdCondition.Builder(ResourceLocation.withDefaultNamespace("chests/simple_dungeon")).build(),
+                new LootTableIdCondition.Builder(ResourceLocation.fromNamespaceAndPath("minecraft","chests/simple_dungeon")).build(),
                 LootItemRandomChanceCondition.randomChance(0.35F).build()}, ModItems.IDOG_BOX.get()));
+        add("calm4_dungeon", new AddItemModifier(new LootItemCondition[] {
+                new LootTableIdCondition.Builder(ResourceLocation.fromNamespaceAndPath("minecraft","chests/simple_dungeon")).build(),
+                LootItemRandomChanceCondition.randomChance(0.35F).build()}, ModItems.MUSIC_DISC_CALM4.get()));
     }
 }

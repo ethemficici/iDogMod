@@ -1,5 +1,6 @@
 package com.ethem00.idogmod;
 
+import com.ethem00.idogmod.datagen.DataGenerators;
 import com.ethem00.idogmod.entity.ModEntities;
 import com.ethem00.idogmod.entity.client.ModModelLayers;
 import com.ethem00.idogmod.entity.client.gui.screen.ingame.iDogScreen;
