@@ -50,7 +50,6 @@ public class iDogMod
     // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "examplemod" namespace
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
 
-
         public iDogMod(FMLJavaModLoadingContext context)
         {
             IEventBus modEventBus = context.getModEventBus();
